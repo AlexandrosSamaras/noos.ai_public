@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sentiment Analyzer</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <!-- Main Toggle -->
+  <div class="toggle-container main-toggle">
+    <span class="toggle-label">Extension:</span>
+    <label class="switch">
+      <input type="checkbox" id="toggleSwitch">
+      <span class="slider round"></span>
+    </label>
+    <span class="toggle-label status-label">Off</span> <!-- Status text -->
+  </div>
+
+  <hr class="divider">
+
+  <!-- Animation Toggles -->
+  <div class="settings-section">
+    <div class="setting-label">Animations:</div>
+    <div class="toggle-container animation-toggle">
+      <span class="toggle-label-small">Negative Shake</span>
+      <label class="switch small-switch">
+        <input type="checkbox" id="enableNegativeAnimationPopup">
+        <span class="slider round"></span>
+      </label>
+    </div>
+    <div class="toggle-container animation-toggle">
+      <span class="toggle-label-small">Positive Pulse</span>
+      <label class="switch small-switch">
+        <input type="checkbox" id="enablePositiveAnimationPopup">
+        <span class="slider round"></span>
+      </label>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+
+ <!-- NEW: Page Actions -->
+ <div class="settings-section">
+  <div class="setting-label">Page Actions:</div>
+  <button id="summarizePageButton" class="button button-secondary page-action-button">Summarize This Page</button>
+</div>
+
+
+
+  <!-- NEW: License Key Section -->
+  <div class="license-section"> <!-- Add class for easier hiding/showing -->
+    <label for="licenseKeyInput" class="setting-label license-label">Activate Premium:</label>
+    <input type="text" id="licenseKeyInput" placeholder="Enter License Key">
+    <button id="verifyLicenseButton" class="button button-small">Verify Key</button>
+    <div id="licenseStatus" class="status-message"></div> <!-- For feedback -->
+  </div>
+
+  <hr class="divider">
+
+  <!-- Tier & Usage Info -->
+  <div id="tierInfo"></div>
+  <div id="usageCounter"></div>
+
+  <!-- Upgrade Button -->
+  <button id="upgradeButton">Upgrade to Premium</button>
+
+  <!-- Link to Full Options (for API Key - kept for consistency for now) -->
+  <div class="options-link-container">
+    <a href="#" id="openOptionsLink">Options</a> <!-- Simplified link text -->
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

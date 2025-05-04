@@ -1,0 +1,103 @@
+/* popup.css - vFinal - Dark Theme & MORE Rounded Body */
+
+:root {
+    /* Color Palette (from landing page CSS) */
+    --primary-neon-blue: #00ffff;
+    --secondary-neon-magenta: #0059ff;
+    --background-dark: #0f172a;
+    --background-medium: #1e293b;
+    --text-color-light: #e7f1fd;
+    --text-color-medium: #b5c8e4;
+    --border-color-dark: #334155;
+    --font-primary: 'Google Sans', 'Roboto', sans-serif;
+    --font-secondary: 'Roboto', 'Google Sans', sans-serif;
+    --neon-blue-glow-subtle: 0 0 3px var(--primary-neon-blue), 0 0 6px rgba(0, 255, 255, 0.5);
+    --neon-magenta-glow-subtle: 0 0 3px var(--secondary-neon-magenta), 0 0 6px rgba(0, 89, 255, 0.5);
+}
+
+body {
+    width: 200px;
+    padding: 15px;
+    font-family: var(--font-secondary);
+    background-color: var(--background-dark);
+    color: var(--text-color-medium);
+    border-radius: 30px; /* <-- Made even more rounded */
+    display: flex; /* <-- Removed test border */
+    flex-direction: column;
+    align-items: center;
+    min-height: 260px;
+    overflow: hidden; /* <-- Added to help enforce rounding */
+    box-shadow: 0 0 15px var(--primary-neon-blue); /* <-- Added glow effect */
+}
+
+h3, label, .setting-label, #tierInfo {
+     font-family: var(--font-primary);
+     color: var(--text-color-light);
+     text-align: center;
+     width: 100%;
+}
+
+#tierInfo { margin-bottom: 4px; font-size: 0.9em; font-weight: 500; }
+#usageCounter { font-size: 0.8em; margin-bottom: 10px; text-align: center; color: var(--text-color-medium); width: 100%; }
+
+.divider { border: none; border-top: 1px solid var(--border-color-dark); margin: 10px 0; width: 100%; }
+
+/* Main Toggle */
+.main-toggle { margin-bottom: 5px; width: 100%; }
+.main-toggle .toggle-label { font-size: 13px; font-weight: 500; color: var(--text-color-light); }
+.main-toggle .status-label { font-size: 11px; min-width: 25px; text-align: right; color: var(--text-color-medium); }
+
+/* Settings Section */
+.settings-section { width: 100%; margin-bottom: 8px; }
+.setting-label { font-weight: 500; font-size: 0.95em; margin-bottom: 8px; color: var(--text-color-light); display: block; }
+
+/* Animation Toggles Container */
+.animation-toggle { margin-bottom: 6px; padding: 0 5px; }
+.toggle-label-small { font-size: 11px; color: var(--text-color-medium); flex-grow: 1; margin-right: 5px; text-align: left; }
+
+/* General Styles for toggle containers */
+.toggle-container { display: flex; align-items: center; justify-content: space-between; width: 100%; box-sizing: border-box; margin-bottom: 4px; }
+
+/* --- Switch Styles --- */
+.switch { position: relative; display: inline-block; width: 38px; height: 18px; flex-shrink: 0; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #334155; transition: .4s; }
+.slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 2px; bottom: 2px; background-color: var(--text-color-medium); transition: .4s; box-shadow: inset 0 0 2px rgba(0,0,0,0.5); }
+input:checked + .slider { background-color: var(--secondary-neon-magenta); box-shadow: var(--neon-magenta-glow-subtle); }
+input:checked + .slider:before { transform: translateX(18px); background-color: white; }
+.slider.round { border-radius: 18px; }
+.slider.round:before { border-radius: 50%; }
+input:focus + .slider { outline: none; }
+
+/* --- Buttons --- */
+.button { display: inline-block; padding: 6px 14px; border: 1px solid var(--primary-neon-blue); border-radius: 15px; font-weight: 500; font-size: 0.8rem; cursor: pointer; text-align: center; background-color: transparent; color: var(--primary-neon-blue); transition: background-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease; text-decoration: none; box-shadow: inset 0 0 3px rgba(0, 255, 255, 0.3), 0 0 3px rgba(0, 255, 255, 0.3); }
+.button:hover:not(:disabled) { background-color: rgba(0, 255, 255, 0.1); color: #fff; box-shadow: var(--neon-blue-glow-subtle); text-decoration: none; }
+
+/* Upgrade Button */
+#upgradeButton { width: 90%; font-size: 12px; padding: 8px 5px; margin-top: 10px; margin-bottom: 10px; background-color: #003b7e; border-color: var(--primary-neon-blue); color: var(--text-color-light); box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), var(--neon-blue-glow-subtle); animation: pulse 2.5s infinite ease-in-out; border-radius: 15px; }
+#upgradeButton:hover:not(:disabled) { background-color: #004cb3; color: #fff; box-shadow: 0 0 6px var(--primary-neon-blue), 0 0 12px var(--primary-neon-blue), 0 0 20px var(--primary-neon-blue); transform: translateY(-1px); }
+
+/* Page Action Button */
+.page-action-button { width: 90%; margin-top: 5px; margin-bottom: 5px; /* Uses .button secondary style */ }
+
+/* License Section */
+.license-section { width: 100%; text-align: center; margin-bottom: 8px; padding: 0 5px; box-sizing: border-box; }
+.license-label { font-size: 0.9em; margin-bottom: 6px; display: block; color: var(--text-color-light); }
+#licenseKeyInput { width: calc(100% - 10px); padding: 6px 8px; font-size: 11px; border: 1px solid var(--border-color-dark); background-color: var(--background-medium); color: var(--text-color-light); border-radius: 4px; margin-bottom: 6px; box-sizing: border-box; text-align: center; }
+#licenseKeyInput::placeholder { color: var(--text-color-medium); opacity: 0.7; }
+#verifyLicenseButton.button { margin-top: 4px; }
+.status-message { font-size: 0.8em; min-height: 1.2em; margin-top: 4px; color: var(--primary-neon-blue); }
+.status-message.error { color: #ff5566; font-weight: bold; } /* Brighter error red */
+.hidden { display: none !important; }
+
+/* Options Link */
+.options-link-container { margin-top: 10px; width: 100%; text-align: center; }
+#openOptionsLink { font-size: 0.8em; color: var(--secondary-neon-magenta); text-decoration: none; }
+#openOptionsLink:hover { text-decoration: underline; color: var(--primary-neon-blue); text-shadow: none; }
+
+/* Pulse animation */
+@keyframes pulse { 0% { transform: scale(1); box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), var(--neon-blue-glow-subtle); } 50% { transform: scale(1.03); box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4), 0 0 6px var(--primary-neon-blue), 0 0 12px var(--primary-neon-blue); } 100% { transform: scale(1); box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), var(--neon-blue-glow-subtle); } }
+
+/* Dim disabled elements using class */
+.disabled-styling { opacity: 0.5 !important; cursor: not-allowed !important; box-shadow: none !important; animation: none !important; pointer-events: none !important; }
+.toggle-container.disabled-styling { /* Dim toggle labels too */ opacity: 0.5 !important; }
