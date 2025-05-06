@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "NoosAI", 
-  "version": "1.7", 
-  "description": "Instantly analyze sentiment, summarize, or extract keywords from selected text.", 
+  "name": "Noos.AI", 
+  "version": "1.8", 
+  "description": "Instantly analyze sentiment, translate, summarize, or extract keywords from selected text.", 
   "permissions": [
     "activeTab",
     "scripting",

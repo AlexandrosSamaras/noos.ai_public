@@ -1,4 +1,5 @@
-// background.js - v1.9 - Correct Error Messages for Panel
+// c:\Users\alexa\OneDrive\Υπολογιστής\noos.ai v1.7\background.js
+// background.js - v1.9 - Correct Error Messages for Panel + Translate Existing Text
 
 // --- Constants ---
 const BACKEND_ANALYZE_URL = "https://sentiment-analyzer-service-872183226779.us-central1.run.app/analyze";
@@ -28,7 +29,7 @@ function getPageContentForSummary() { return document.body.innerText || ''; }
 function triggerPageSummary(tabId, positionInfo) {
      chrome.storage.sync.get("isPremium", (settings) => {
         if (chrome.runtime.lastError) { console.error("BG: Page Summary Err get settings:",chrome.runtime.lastError.message); chrome.tabs.sendMessage(tabId,{action:"showResult",resultType:"error",data:{error:"Error checking status"},position:positionInfo}).catch(e=>console.warn("BG Err send:",e.message)); return; }
-        const isPremium = settings.isPremium === true;
+        const isPremium = settings.isPremium === true; // Page summary is premium
         if (!isPremium) {
             console.log("BG: Page Summary requires Premium.");
             // *** Send Specific Premium Required Error via showResult ***
@@ -44,7 +45,12 @@ function triggerPageSummary(tabId, positionInfo) {
         chrome.scripting.executeScript({ target:{tabId:tabId}, func:getPageContentForSummary }, (injectionResults) => {
              if(chrome.runtime.lastError||!injectionResults||injectionResults.length===0){ console.error('BG: Failed inject/execute script page summary:',chrome.runtime.lastError?.message||'No result'); chrome.tabs.sendMessage(tabId,{action:"showResult",resultType:"error",data:{error:"Could not read page content."},position:positionInfo}).catch(e=>console.warn("Err send msg:",e.message)); return; }
              const pageText = injectionResults[0].result;
-             if (pageText && pageText.trim().length > 0) { console.log(`BG: Extracted page text (first 100): ${pageText.substring(0, 100)}...`); performAnalysisAction(tabId, pageText, "summarize", true, positionInfo); }
+             if (pageText && pageText.trim().length > 0) {
+                console.log(`BG: Extracted page text (first 100): ${pageText.substring(0, 100)}...`);
+                // For page summary, targetLanguage can default to "auto" or a sensible default like "en"
+                // Since it's a general page summary, "auto" (match input language) makes sense.
+                performAnalysisAction(tabId, pageText, "summarize", true, positionInfo, "auto");
+            }
              else { console.warn("BG: Extracted page text empty."); chrome.tabs.sendMessage(tabId,{action:"showResult",resultType:"error",data:{error:"Page has no readable text."},position:positionInfo}).catch(e=>console.warn("Err send msg:",e.message)); }
         });
      });
@@ -52,8 +58,8 @@ function triggerPageSummary(tabId, positionInfo) {
 
 
 // --- Central Function to Perform Analysis Actions ---
-function performAnalysisAction(tabId, textToAnalyze, action, requiresPremium, position) {
-    console.log(`BG: Performing action '${action}' for tab ${tabId}. Premium required: ${requiresPremium}`);
+function performAnalysisAction(tabId, textToAnalyze, action, requiresPremium, position, targetLanguage = "auto") {
+    console.log(`BG: Performing action '${action}' for tab ${tabId}. Premium: ${requiresPremium}, Lang: ${targetLanguage}`);
 
     // ** REMOVED showProcessing message **
 
@@ -91,12 +97,37 @@ function performAnalysisAction(tabId, textToAnalyze, action, requiresPremium, po
 
         // --- Call Backend Service ---
         console.log(`BG: Sending action '${action}' to backend...`);
-        fetch(BACKEND_ANALYZE_URL, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Extension-Secret': EXTENSION_SECRET }, body: JSON.stringify({ action: action, text: textToAnalyze }) })
+        fetch(BACKEND_ANALYZE_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Extension-Secret': EXTENSION_SECRET },
+            body: JSON.stringify({
+                action: action,
+                text: textToAnalyze,
+                targetLanguage: targetLanguage // Pass the target language
+            }) })
         .then(response => { if (!response.ok) { return response.text().then(text => { throw new Error(`Service Error (${response.status}) ${text.substring(0,100)}`); }); } return response.json(); })
         .then(data => {
              if (!data || !data.action) { throw new Error("Invalid response format from analysis service."); }
              console.log("BG: Received successful data from backend:", data);
-             chrome.tabs.sendMessage(tabId, { action: "showResult", resultType: data.action, data: data, position: position }).catch(e => console.warn("BG: Error sending final result message:", e.message));
+             chrome.tabs.sendMessage(tabId, { action: "showResult", resultType: data.action, data: data, position: position })
+             .catch(e => {
+                console.warn(`BG: Error sending final result message for action ${action} to tab ${tabId}:`, e.message);
+                if (e.message && e.message.includes("Could not establish connection. Receiving end does not exist.")) {
+                    // Check if we have notification permission before trying to use it
+                    chrome.permissions.contains({ permissions: ["notifications"] }, (granted) => {
+                        if (granted) {
+                            chrome.notifications.create({
+                                type: "basic",
+                                iconUrl: chrome.runtime.getURL("icons/icon48.png"), // Ensure you have this icon
+                                title: "NoosAI Analysis Error",
+                                message: `Could not display results on the current page. The page may be restricted or not supported. (Action: ${action})`
+                            });
+                        } else {
+                            console.warn("BG: Notifications permission not granted. Cannot show user notification for send error.");
+                        }
+                    });
+                }
+            });
          })
         .catch(error => {
              console.error(`BG: Error during backend fetch/processing for action ${action}:`, error);
@@ -129,6 +160,41 @@ chrome.runtime.onMessage.addListener(
                 triggerPageSummary(tabs[0].id, { type: "pageAction" }); // Use helper
             });
             return true; // Async operations inside
+        }
+        else if (request.action === "analyzeCustomText") {
+            console.log("BG: Received analyzeCustomText request from popup:", request);
+            chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+                if (chrome.runtime.lastError || !tabs || tabs.length === 0 || !tabs[0]?.id) {
+                    console.error("BG: Could not get active tab for custom text analysis:", chrome.runtime.lastError?.message || "No tab");
+                    sendResponse({ success: false, error: "Could not find active tab." });
+                    return;
+                }
+                const tabId = tabs[0].id;
+                let requiresPremium = false;
+                if (request.analysisType === "summarize" || request.analysisType === "keywords" || request.analysisType === "translate") {
+                    requiresPremium = true;
+                }
+                performAnalysisAction(tabId, request.text, request.analysisType, requiresPremium, { type: "popupAction" }, request.targetLanguage);
+                sendResponse({ success: true }); // Acknowledge receipt to popup
+            });
+            return true; // Async operations
+        }
+        else if (request.action === "translateExistingText") {
+            console.log("BG: Received translateExistingText request from content script:", request);
+            chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+                if (chrome.runtime.lastError || !tabs || tabs.length === 0 || !tabs[0]?.id) {
+                    console.error("BG: Could not get active tab for translateExistingText:", chrome.runtime.lastError?.message || "No tab");
+                    // No direct sendResponse needed here as the content script isn't waiting for a direct reply to this specific message
+                    return;
+                }
+                const tabId = tabs[0].id;
+                // Assume translating existing text is also a premium feature if general translation is.
+                const requiresPremium = true;
+                // The position isn't strictly necessary here as the panel is already open,
+                // but we can pass a generic one or null.
+                performAnalysisAction(tabId, request.textToTranslate, "translate", requiresPremium, { type: "panelAction" }, request.targetLanguage);
+            });
+            return false; // Not expecting a direct response to content.js for this specific message
         }
 
         console.warn("BG: Runtime message type not handled:", request);

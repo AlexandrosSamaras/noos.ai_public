@@ -16,7 +16,7 @@
 }
 
 body {
-    width: 200px;
+    width: 380px; /* <-- Made wider */
     padding: 15px;
     font-family: var(--font-secondary);
     background-color: var(--background-dark);
@@ -24,7 +24,7 @@ body {
     border-radius: 30px; /* <-- Made even more rounded */
     display: flex; /* <-- Removed test border */
     flex-direction: column;
-    align-items: center;
+    align-items: center; /* <-- Re-enabled for centering */
     min-height: 260px;
     overflow: hidden; /* <-- Added to help enforce rounding */
     box-shadow: 0 0 15px var(--primary-neon-blue); /* <-- Added glow effect */
@@ -33,7 +33,7 @@ body {
 h3, label, .setting-label, #tierInfo {
      font-family: var(--font-primary);
      color: var(--text-color-light);
-     text-align: center;
+     text-align: center; /* <-- Ensure these are centered */
      width: 100%;
 }
 
@@ -41,7 +41,7 @@ h3, label, .setting-label, #tierInfo {
 #usageCounter { font-size: 0.8em; margin-bottom: 10px; text-align: center; color: var(--text-color-medium); width: 100%; }
 
 .divider { border: none; border-top: 1px solid var(--border-color-dark); margin: 10px 0; width: 100%; }
-
+/* Ensure dividers in custom section are also full width if needed */
 /* Main Toggle */
 .main-toggle { margin-bottom: 5px; width: 100%; }
 .main-toggle .toggle-label { font-size: 13px; font-weight: 500; color: var(--text-color-light); }
@@ -49,7 +49,7 @@ h3, label, .setting-label, #tierInfo {
 
 /* Settings Section */
 .settings-section { width: 100%; margin-bottom: 8px; }
-.setting-label { font-weight: 500; font-size: 0.95em; margin-bottom: 8px; color: var(--text-color-light); display: block; }
+.setting-label { font-weight: 500; font-size: 0.95em; margin-bottom: 6px; color: var(--text-color-light); display: block; text-align: center; }
 
 /* Animation Toggles Container */
 .animation-toggle { margin-bottom: 6px; padding: 0 5px; }
@@ -73,12 +73,14 @@ input:focus + .slider { outline: none; }
 .button { display: inline-block; padding: 6px 14px; border: 1px solid var(--primary-neon-blue); border-radius: 15px; font-weight: 500; font-size: 0.8rem; cursor: pointer; text-align: center; background-color: transparent; color: var(--primary-neon-blue); transition: background-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease; text-decoration: none; box-shadow: inset 0 0 3px rgba(0, 255, 255, 0.3), 0 0 3px rgba(0, 255, 255, 0.3); }
 .button:hover:not(:disabled) { background-color: rgba(0, 255, 255, 0.1); color: #fff; box-shadow: var(--neon-blue-glow-subtle); text-decoration: none; }
 
+/* Removed .button-primary style as new buttons will use .button style */
+
 /* Upgrade Button */
 #upgradeButton { width: 90%; font-size: 12px; padding: 8px 5px; margin-top: 10px; margin-bottom: 10px; background-color: #003b7e; border-color: var(--primary-neon-blue); color: var(--text-color-light); box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), var(--neon-blue-glow-subtle); animation: pulse 2.5s infinite ease-in-out; border-radius: 15px; }
 #upgradeButton:hover:not(:disabled) { background-color: #004cb3; color: #fff; box-shadow: 0 0 6px var(--primary-neon-blue), 0 0 12px var(--primary-neon-blue), 0 0 20px var(--primary-neon-blue); transform: translateY(-1px); }
 
 /* Page Action Button */
-.page-action-button { width: 90%; margin-top: 5px; margin-bottom: 5px; /* Uses .button secondary style */ }
+.page-action-button { width: 90%; margin: 5px auto; /* Uses .button style, ensure centering if body align-items isn't enough */ }
 
 /* License Section */
 .license-section { width: 100%; text-align: center; margin-bottom: 8px; padding: 0 5px; box-sizing: border-box; }
@@ -101,3 +103,53 @@ input:focus + .slider { outline: none; }
 /* Dim disabled elements using class */
 .disabled-styling { opacity: 0.5 !important; cursor: not-allowed !important; box-shadow: none !important; animation: none !important; pointer-events: none !important; }
 .toggle-container.disabled-styling { /* Dim toggle labels too */ opacity: 0.5 !important; }
+
+/* --- Custom Text Analysis Section --- */
+.custom-text-section {
+    width: 100%;
+    margin-top: 10px; /* Add some space above this section */
+}
+
+.custom-text-section .section-title { /* Target section title specifically if needed */
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.custom-text-section textarea#customAnalysisText,
+.custom-text-section select#outputLanguageSelect {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border-color-dark);
+    border-radius: 8px; /* Inspired by results panel */
+    background-color: var(--background-medium); /* Consistent with license input */
+    color: var(--text-color-light);
+    font-family: var(--font-secondary);
+    font-size: 13px;
+    box-sizing: border-box;
+    /* Text inside textarea/select should typically be left-aligned by default */
+    /* text-align: left; */ /* Explicitly if needed, but usually default */
+}
+
+.custom-text-section textarea#customAnalysisText {
+    min-height: 70px;
+    resize: vertical;
+}
+
+.custom-text-section .language-select-container {
+    margin-bottom: 12px;
+}
+
+.custom-action-buttons {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 5px;
+}
+/* Style for the new action buttons, ensuring they use the .button style and are laid out in a grid */
+.custom-action-buttons .button {
+    flex-grow: 1; flex-basis: calc(50% - 4px); /* For 2 buttons per row, accounting for gap */
+    min-width: 100px; /* Ensure buttons don't get too squished */
+}
+
+.custom-text-section #customAnalysisStatus {
+    text-align: center; /* Center status message for this section */
+    width: 100%;
+}

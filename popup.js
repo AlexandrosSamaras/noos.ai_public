@@ -15,6 +15,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const verifyLicenseButton = document.getElementById("verifyLicenseButton");
   const licenseStatus = document.getElementById("licenseStatus");
   const summarizePageButton = document.getElementById("summarizePageButton");
+  // New custom text analysis elements
+  const customAnalysisText = document.getElementById("customAnalysisText");
+  const outputLanguageSelect = document.getElementById("outputLanguageSelect");
+  const analyzeSentimentCustom = document.getElementById("analyzeSentimentCustom");
+  const analyzeSummaryCustom = document.getElementById("analyzeSummaryCustom");
+  const analyzeKeywordsCustom = document.getElementById("analyzeKeywordsCustom");
+  const analyzeTranslateCustom = document.getElementById("analyzeTranslateCustom");
+  const customAnalysisStatus = document.getElementById("customAnalysisStatus");
+
   const animationSettingsSection = document.querySelector('.settings-section');
 
   // --- State & Constants ---
@@ -44,7 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function updatePopupUIEnabledState(isEnabled) {
-      const elementsToControl = [ negAnimCheckbox, posAnimCheckbox, upgradeButton, optionsLink, licenseKeyInput, verifyLicenseButton, summarizePageButton ];
+      const elementsToControl = [ negAnimCheckbox, posAnimCheckbox, upgradeButton, optionsLink, licenseKeyInput, verifyLicenseButton, summarizePageButton, customAnalysisText, outputLanguageSelect, analyzeSentimentCustom, analyzeSummaryCustom, analyzeKeywordsCustom, analyzeTranslateCustom ];
       const containersToControl = [ animationSettingsSection, licenseSection ]; // Containers to dim
 
       elementsToControl.forEach(el => {
@@ -61,6 +70,10 @@ document.addEventListener("DOMContentLoaded", () => {
        document.querySelectorAll(':not(.disabled-styling) .toggle-label-small, :not(.disabled-styling) .setting-label')
            .forEach(label => label.style.opacity = '1');
 
+      // Clear custom analysis status if present
+      if (customAnalysisStatus) {
+        customAnalysisStatus.textContent = '';
+      }
 
       // Re-apply display none/block based on premium status AFTER setting enabled/disabled
       updateTierInfo(isPremium, parseInt(usageCounter?.textContent?.split(' ')[1] || '0'));
@@ -97,6 +110,53 @@ document.addEventListener("DOMContentLoaded", () => {
   else { console.warn("Summarize Page button not found."); }
 
   // Options Link
-  optionsLink.addEventListener("click", (event) => { event.preventDefault();if(chrome.runtime.openOptionsPage){chrome.runtime.openOptionsPage();}else{window.open(chrome.runtime.getURL('options.html'));}});
+  if(optionsLink) optionsLink.addEventListener("click", (event) => { event.preventDefault();if(chrome.runtime.openOptionsPage){chrome.runtime.openOptionsPage();}else{window.open(chrome.runtime.getURL('options.html'));}});
+
+  // --- Custom Text Analysis Button Listeners ---
+  function handleCustomAnalysis(analysisType) {
+    if (!toggleSwitch.checked) {
+      if(customAnalysisStatus) { customAnalysisStatus.textContent = "Enable extension first."; customAnalysisStatus.style.color = 'orange'; }
+      setTimeout(() => { if(customAnalysisStatus) customAnalysisStatus.textContent = ''; }, 2500);
+      return;
+    }
+    const text = customAnalysisText.value.trim();
+    const targetLanguage = outputLanguageSelect.value;
+
+    if (!text) {
+      if(customAnalysisStatus) { customAnalysisStatus.textContent = "Please enter text to analyze."; customAnalysisStatus.style.color = 'red'; }
+      setTimeout(() => { if(customAnalysisStatus) customAnalysisStatus.textContent = ''; }, 2000);
+      return;
+    }
+
+    // Special check for translate action with "auto" language
+    if (analysisType === 'translate' && targetLanguage === 'auto') {
+        if(customAnalysisStatus) { customAnalysisStatus.textContent = "Please select a specific target language for translation."; customAnalysisStatus.style.color = 'orange'; }
+        setTimeout(() => { if(customAnalysisStatus) customAnalysisStatus.textContent = ''; }, 3000);
+        return;
+    }
+
+    if(customAnalysisStatus) { customAnalysisStatus.textContent = "Processing..."; customAnalysisStatus.style.color = '#aaa'; }
+
+    sendMessageToBackground({
+      action: "analyzeCustomText",
+      text: text,
+      analysisType: analysisType, // "sentiment", "summarize", "keywords", "translate"
+      targetLanguage: targetLanguage
+    }, (response) => {
+      // The main result is shown in the content script panel.
+      // Here, we can just clear the "Processing..." message or show a success/error specific to the popup interaction.
+      if (customAnalysisStatus) {
+        customAnalysisStatus.textContent = response?.success ? "Request sent!" : (response?.error || "Error sending request.");
+        customAnalysisStatus.style.color = response?.success ? 'var(--primary-neon-blue)' : 'red';
+        setTimeout(() => { if(customAnalysisStatus) customAnalysisStatus.textContent = ''; }, 2000);
+      }
+      if (response?.success) setTimeout(() => window.close(), 250); // Close popup on success
+    });
+  }
+
+  if(analyzeSentimentCustom) analyzeSentimentCustom.addEventListener("click", () => handleCustomAnalysis("sentiment"));
+  if(analyzeSummaryCustom) analyzeSummaryCustom.addEventListener("click", () => handleCustomAnalysis("summarize"));
+  if(analyzeKeywordsCustom) analyzeKeywordsCustom.addEventListener("click", () => handleCustomAnalysis("keywords"));
+  if(analyzeTranslateCustom) analyzeTranslateCustom.addEventListener("click", () => handleCustomAnalysis("translate"));
 
 }); // End DOMContentLoaded
