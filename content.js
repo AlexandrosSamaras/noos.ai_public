@@ -261,7 +261,28 @@ function showResultPanel(titleText, resultData, resultType = 'info', isError = f
             if (aiLevel && !isError) {
                 formattedContent += `<p style="font-size: 0.75em; color: #8694a6 !important; text-align: right; margin-top: 8px; margin-bottom: -5px; font-style: italic;">${escapeHTML(aiLevel)}</p>`;
             }
-        } else { // Handles 'unknown' or any other type
+        } else if (resultType === 'explain') {
+            const explanationText = resultData?.explanation || '(No explanation generated)';
+            console.log(`CS ShowPanel: Explanation Text Length=${explanationText.length}`);
+            formattedContent = `<p style="font-weight: 500; margin-bottom: 8px; color: #e7f1fd !important; font-family: 'Google Sans', sans-serif !important;"><strong>Explanation:</strong></p><p style="color: #e7f1fd !important; font-family: 'Google Sans', sans-serif !important; font-weight: 400 !important;">${escapeHTML(explanationText).replace(/\n/g, '<br>')}</p>`;
+            plainTextForCopy = explanationText;
+            const aiLevel = resultData?.aiLevel;
+            if (aiLevel && !isError) { formattedContent += `<p style="font-size: 0.75em; color: #8694a6 !important; text-align: right; margin-top: 8px; margin-bottom: -5px; font-style: italic;">${escapeHTML(aiLevel)}</p>`; }
+        } else if (resultType === 'simplify') {
+            const simplifiedText = resultData?.simplifiedText || '(No simplified text generated)';
+            console.log(`CS ShowPanel: Simplified Text Length=${simplifiedText.length}`);
+            formattedContent = `<p style="font-weight: 500; margin-bottom: 8px; color: #e7f1fd !important; font-family: 'Google Sans', sans-serif !important;"><strong>Simplified Text:</strong></p><p style="color: #e7f1fd !important; font-family: 'Google Sans', sans-serif !important; font-weight: 400 !important;">${escapeHTML(simplifiedText).replace(/\n/g, '<br>')}</p>`;
+            plainTextForCopy = simplifiedText;
+            const aiLevel = resultData?.aiLevel;
+            if (aiLevel && !isError) { formattedContent += `<p style="font-size: 0.75em; color: #8694a6 !important; text-align: right; margin-top: 8px; margin-bottom: -5px; font-style: italic;">${escapeHTML(aiLevel)}</p>`; }
+        } else if (resultType === 'search') {
+            const searchResultText = resultData?.searchResult || '(No search result generated)';
+            console.log(`CS ShowPanel: Search Result Text Length=${searchResultText.length}`);
+            formattedContent = `<p style="font-weight: 500; margin-bottom: 8px; color: #e7f1fd !important; font-family: 'Google Sans', sans-serif !important;"><strong>Information:</strong></p><p style="color: #e7f1fd !important; font-family: 'Google Sans', sans-serif !important; font-weight: 400 !important;">${escapeHTML(searchResultText).replace(/\n/g, '<br>')}</p>`;
+            plainTextForCopy = searchResultText;
+            const aiLevel = resultData?.aiLevel;
+            if (aiLevel && !isError) { formattedContent += `<p style="font-size: 0.75em; color: #8694a6 !important; text-align: right; margin-top: 8px; margin-bottom: -5px; font-style: italic;">${escapeHTML(aiLevel)}</p>`; }
+        } else { // Handles 'unknown' or any other type (MUST BE LAST 'else')
             console.warn(`CS ShowPanel: Unknown result type '${resultType}'. Displaying raw data.`);
             const rawDataString = JSON.stringify(resultData, null, 2);
             formattedContent = `<p>Unexpected result type.</p><pre style="font-size:0.8em; color: #aaa;">${escapeHTML(rawDataString)}</pre>`;
@@ -387,6 +408,9 @@ try {
                         case 'summarize': panelTitle = "Summary"; break;
                         case 'keywords': panelTitle = "Keywords"; break;
                         case 'translate': panelTitle = "Translation"; break;
+                        case 'explain': panelTitle = "Explanation"; break;
+                        case 'simplify': panelTitle = "Simplified Text"; break;
+                        case 'search': panelTitle = "Search Result"; break;
                         default: panelTitle = "Unknown Result"; isErrorResult = true; break;
                     }
                 } else { panelTitle = "Error"; }

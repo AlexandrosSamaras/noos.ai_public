@@ -6,9 +6,29 @@
 </head>
 <body>
   <h1>Sentiment Analyzer Options</h1>
+  
   <div class="option-group">
-    <p>Configuration is handled securely.</p>
-    <!-- Link to your actual website/support if needed -->
+    <h2>Animation Settings</h2>
+    <div class="settings-section" id="animationTogglesContainerOptions"> <!-- Changed ID to avoid conflict if CSS is shared and specific -->
+      <div class="toggle-container animation-toggle">
+        <span class="toggle-label-small">Negative Shake Effect</span>
+        <label class="switch small-switch">
+          <input type="checkbox" id="enableNegativeAnimationOptions"> <!-- Changed ID -->
+          <span class="slider round"></span>
+        </label>
+      </div>
+      <div class="toggle-container animation-toggle">
+        <span class="toggle-label-small">Positive Pulse Effect</span>
+        <label class="switch small-switch">
+          <input type="checkbox" id="enablePositiveAnimationOptions"> <!-- Changed ID -->
+          <span class="slider round"></span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="option-group">
+    <p>Other configurations are handled securely or via the extension popup.</p>
   </div>
   <script src="options.js"></script>
 </body>

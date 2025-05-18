@@ -12,15 +12,81 @@ const CONTEXT_MENU_ID_SENTIMENT = "noosai_sentiment";
 const CONTEXT_MENU_ID_SUMMARIZE = "noosai_summarize";
 const CONTEXT_MENU_ID_KEYWORDS = "noosai_keywords";
 const CONTEXT_MENU_ID_PAGE_SUMMARIZE = "noosai_summarize_page";
+const CONTEXT_MENU_ID_EXPLAIN = "noosai_explain";
+const CONTEXT_MENU_ID_SIMPLIFY = "noosai_simplify";
+const CONTEXT_MENU_ID_SEARCH = "noosai_search_selection";
 
 // --- Helper: Create Context Menus ---
-function setupContextMenus() { /* ... same as before ... */ chrome.contextMenus.removeAll(()=>{if(chrome.runtime.lastError)console.error("BG: Err remove menus:",chrome.runtime.lastError.message);chrome.contextMenus.create({id:CONTEXT_MENU_ID_SENTIMENT,title:"NoosAI: Analyze Sentiment",contexts:["selection"]},()=>{/*...*/});chrome.contextMenus.create({id:CONTEXT_MENU_ID_SUMMARIZE,title:"NoosAI: Summarize Selection",contexts:["selection"]},()=>{/*...*/});chrome.contextMenus.create({id:CONTEXT_MENU_ID_KEYWORDS,title:"NoosAI: Extract Keywords",contexts:["selection"]},()=>{/*...*/});chrome.contextMenus.create({id:CONTEXT_MENU_ID_PAGE_SUMMARIZE,title:"NoosAI: Summarize Page",contexts:["page"]},()=>{/*...*/});console.log("BG: Menus created.");}); }
+function setupContextMenus() {
+    chrome.contextMenus.removeAll(() => {
+        if (chrome.runtime.lastError) {
+            console.error("BG: Error removing existing context menus:", chrome.runtime.lastError.message);
+        }
+
+        // Reordered to somewhat match popup button sequence (Search, Explain, Simplify first)
+        chrome.contextMenus.create({ id: CONTEXT_MENU_ID_SEARCH, title: "NoosAI: AI Search Selection", contexts: ["selection"] }, () => { if (chrome.runtime.lastError) console.error("BG: Err create AI Search menu:", chrome.runtime.lastError.message); });
+        chrome.contextMenus.create({ id: CONTEXT_MENU_ID_EXPLAIN, title: "NoosAI: Explain Selection", contexts: ["selection"] }, () => { if (chrome.runtime.lastError) console.error("BG: Err create Explain menu:", chrome.runtime.lastError.message); });
+        chrome.contextMenus.create({ id: CONTEXT_MENU_ID_SIMPLIFY, title: "NoosAI: Simplify Selection", contexts: ["selection"] }, () => { if (chrome.runtime.lastError) console.error("BG: Err create Simplify menu:", chrome.runtime.lastError.message); });
+        
+        // Core features
+        chrome.contextMenus.create({ id: CONTEXT_MENU_ID_SENTIMENT, title: "NoosAI: Analyze Sentiment", contexts: ["selection"] }, () => { if (chrome.runtime.lastError) console.error("BG: Err create Sentiment menu:", chrome.runtime.lastError.message); });
+        chrome.contextMenus.create({ id: CONTEXT_MENU_ID_SUMMARIZE, title: "NoosAI: Summarize Selection", contexts: ["selection"] }, () => { if (chrome.runtime.lastError) console.error("BG: Err create Summarize menu:", chrome.runtime.lastError.message); });
+        chrome.contextMenus.create({ id: CONTEXT_MENU_ID_KEYWORDS, title: "NoosAI: Extract Keywords", contexts: ["selection"] }, () => { if (chrome.runtime.lastError) console.error("BG: Err create Keywords menu:", chrome.runtime.lastError.message); });
+
+        // Page-level action (Translate is not in context menu, so it's skipped here)
+        chrome.contextMenus.create({ id: CONTEXT_MENU_ID_PAGE_SUMMARIZE, title: "NoosAI: Summarize Page", contexts: ["page"] }, () => { if (chrome.runtime.lastError) console.error("BG: Err create Page Summarize menu:", chrome.runtime.lastError.message); });
+
+        console.log("BG: Context menus created/updated.");
+    });
+}
 
 // --- Initialization ---
 chrome.runtime.onInstalled.addListener((details) => { /* ... same as before ... */ setupContextMenus(); chrome.storage.sync.set({extensionEnabled:!0,isPremium:!1,totalFreeTierUsageCount:0,enableNegativeAnimation:!0,enablePositiveAnimation:!0},()=>{/*...*/}); });
 
 // --- Listener for Context Menu Clicks ---
-chrome.contextMenus.onClicked.addListener((info, tab) => { /* ... same basic logic ... */ console.log("BG: Context menu clicked:",info);if(!tab?.id){console.error("BG: No Tab ID");return;} const tabId=tab.id;const positionInfo={type:"contextMenu"};if(info.menuItemId===CONTEXT_MENU_ID_PAGE_SUMMARIZE){triggerPageSummary(tabId,positionInfo);return;} if(!info.selectionText||info.selectionText.trim().length===0){console.log("BG: No text selected");return;} const selectedText=info.selectionText.trim();let action="";let requiresPremium=!1;switch(info.menuItemId){case CONTEXT_MENU_ID_SENTIMENT:action="sentiment";requiresPremium=!1;break;case CONTEXT_MENU_ID_SUMMARIZE:action="summarize";requiresPremium=!0;break;case CONTEXT_MENU_ID_KEYWORDS:action="keywords";requiresPremium=!0;break;default:console.warn("BG: Unknown menu item:",info.menuItemId);return;} console.log(`BG: Context action:${action}, Premium:${requiresPremium}`);performAnalysisAction(tabId,selectedText,action,requiresPremium,positionInfo);});
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+    console.log("BG: Context menu clicked:", info);
+    if (!tab?.id) {
+        console.error("BG: No Tab ID for context menu action.");
+        return;
+    }
+    const tabId = tab.id;
+    const positionInfo = { type: "contextMenu" }; // To inform content script where to show panel
+
+    // Handle page-level actions first
+    if (info.menuItemId === CONTEXT_MENU_ID_PAGE_SUMMARIZE) {
+        triggerPageSummary(tabId, positionInfo);
+        return;
+    }
+
+    // For selection-based actions
+    if (!info.selectionText || info.selectionText.trim().length === 0) {
+        console.log("BG: No text selected for menu item:", info.menuItemId);
+        // Optionally, you could inform the user via a panel message if this is desired.
+        // For now, it returns silently as per the original partial logic.
+        return;
+    }
+
+    const selectedText = info.selectionText.trim();
+    let action = "";
+    let requiresPremium = false;
+
+    switch (info.menuItemId) {
+        case CONTEXT_MENU_ID_SENTIMENT: action = "sentiment"; requiresPremium = false; break;
+        case CONTEXT_MENU_ID_SUMMARIZE: action = "summarize"; requiresPremium = true; break;
+        case CONTEXT_MENU_ID_KEYWORDS: action = "keywords"; requiresPremium = true; break;
+        case CONTEXT_MENU_ID_EXPLAIN: action = "explain"; requiresPremium = true; break;
+        case CONTEXT_MENU_ID_SIMPLIFY: action = "simplify"; requiresPremium = true; break;
+        case CONTEXT_MENU_ID_SEARCH: action = "search"; requiresPremium = true; break;
+        default:
+            console.warn("BG: Unknown context menu item for selected text:", info.menuItemId);
+            return; // Unknown action for selected text
+    }
+
+    console.log(`BG: Context action: ${action}, Premium: ${requiresPremium}, Text length: ${selectedText.length}`);
+    performAnalysisAction(tabId, selectedText, action, requiresPremium, positionInfo);
+    // targetLanguage will default to "auto" in performAnalysisAction, which is suitable for context menu actions.
+});
 
 // --- Function to be injected to get page content ---
 function getPageContentForSummary() { return document.body.innerText || ''; }
@@ -171,7 +237,7 @@ chrome.runtime.onMessage.addListener(
                 }
                 const tabId = tabs[0].id;
                 let requiresPremium = false;
-                if (request.analysisType === "summarize" || request.analysisType === "keywords" || request.analysisType === "translate") {
+                if (["summarize", "keywords", "translate", "explain", "simplify", "search"].includes(request.analysisType)) {
                     requiresPremium = true;
                 }
                 performAnalysisAction(tabId, request.text, request.analysisType, requiresPremium, { type: "popupAction" }, request.targetLanguage);

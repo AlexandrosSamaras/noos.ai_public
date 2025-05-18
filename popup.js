@@ -7,14 +7,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const upgradeButton = document.getElementById("upgradeButton");
   const tierInfo = document.getElementById("tierInfo");
   const usageCounter = document.getElementById("usageCounter");
-  const negAnimCheckbox = document.getElementById("enableNegativeAnimationPopup");
-  const posAnimCheckbox = document.getElementById("enablePositiveAnimationPopup");
-  const optionsLink = document.getElementById("openOptionsLink");
   const licenseSection = document.querySelector(".license-section");
   const licenseKeyInput = document.getElementById("licenseKeyInput");
   const verifyLicenseButton = document.getElementById("verifyLicenseButton");
   const licenseStatus = document.getElementById("licenseStatus");
-  const summarizePageButton = document.getElementById("summarizePageButton");
   // New custom text analysis elements
   const customAnalysisText = document.getElementById("customAnalysisText");
   const outputLanguageSelect = document.getElementById("outputLanguageSelect");
@@ -22,13 +18,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const analyzeSummaryCustom = document.getElementById("analyzeSummaryCustom");
   const analyzeKeywordsCustom = document.getElementById("analyzeKeywordsCustom");
   const analyzeTranslateCustom = document.getElementById("analyzeTranslateCustom");
+  const analyzeExplainCustom = document.getElementById("analyzeExplainCustom"); 
+  const analyzeSimplifyCustom = document.getElementById("analyzeSimplifyCustom"); 
+  const analyzeSearchCustom = document.getElementById("analyzeSearchCustom"); 
   const customAnalysisStatus = document.getElementById("customAnalysisStatus");
 
-  const animationSettingsSection = document.querySelector('.settings-section');
+  // Removed: negAnimCheckbox, posAnimCheckbox, animationSettingsSection, summarizePageButton, optionsLink
+  // as these elements are no longer in popup.html or their functionality is managed elsewhere.
 
   // --- State & Constants ---
   let isPremium = false;
-  const FREE_TIER_LIMIT = 5;
+  const FREE_TIER_LIMIT = 5; // This is also defined in background.js, ensure they are consistent or derived from one source
 
   // --- Helper Functions ---
 
@@ -53,11 +53,27 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function updatePopupUIEnabledState(isEnabled) {
-      const elementsToControl = [ negAnimCheckbox, posAnimCheckbox, upgradeButton, optionsLink, licenseKeyInput, verifyLicenseButton, summarizePageButton, customAnalysisText, outputLanguageSelect, analyzeSentimentCustom, analyzeSummaryCustom, analyzeKeywordsCustom, analyzeTranslateCustom ];
-      const containersToControl = [ animationSettingsSection, licenseSection ]; // Containers to dim
+      const elementsToControl = [ 
+        upgradeButton, 
+        licenseKeyInput, 
+        verifyLicenseButton, 
+        customAnalysisText, 
+        outputLanguageSelect, 
+        analyzeSentimentCustom, 
+        analyzeSummaryCustom, 
+        analyzeKeywordsCustom, 
+        analyzeTranslateCustom, 
+        analyzeExplainCustom, 
+        analyzeSimplifyCustom, 
+        analyzeSearchCustom 
+      ];
+      const containersToControl = [ licenseSection ]; // Only licenseSection remains from original list
 
       elementsToControl.forEach(el => {
-          if(el) { el.disabled = !isEnabled; el.style.cursor = isEnabled ? 'pointer' : 'not-allowed'; }
+          if(el) { 
+            el.disabled = !isEnabled; 
+            el.style.cursor = isEnabled ? 'pointer' : 'not-allowed'; 
+          }
       });
 
       containersToControl.forEach(el => {
@@ -66,9 +82,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
        // Also toggle labels opacity within dimmed containers
        document.querySelectorAll('.disabled-styling .toggle-label-small, .disabled-styling .setting-label')
-           .forEach(label => label.style.opacity = '0.6');
+           .forEach(label => { if(label) label.style.opacity = '0.6'; });
        document.querySelectorAll(':not(.disabled-styling) .toggle-label-small, :not(.disabled-styling) .setting-label')
-           .forEach(label => label.style.opacity = '1');
+           .forEach(label => { if(label) label.style.opacity = '1'; });
 
       // Clear custom analysis status if present
       if (customAnalysisStatus) {
@@ -76,51 +92,135 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       // Re-apply display none/block based on premium status AFTER setting enabled/disabled
-      updateTierInfo(isPremium, parseInt(usageCounter?.textContent?.split(' ')[1] || '0'));
+      let currentUsage = 0;
+      if (usageCounter && usageCounter.textContent) {
+        const parts = usageCounter.textContent.split(' ');
+        if (parts.length > 1 && !isNaN(parseInt(parts[1]))) {
+            currentUsage = parseInt(parts[1]);
+        }
+      }
+      updateTierInfo(isPremium, currentUsage);
   }
 
   // Helper function to send messages
-  function sendMessageToBackground(message, callback) { console.log("Popup: Sending message:", message); chrome.runtime.sendMessage(message, (response)=>{ if(chrome.runtime.lastError){console.error(`Popup: Msg Err (${message.action||message.message}):`, chrome.runtime.lastError.message); if(callback)callback({success:!1, error:chrome.runtime.lastError.message});}else{console.log("Popup: Received response:", response); if(callback)callback(response);}}); }
+  function sendMessageToBackground(message, callback) { 
+    console.log("Popup: Sending message:", message); 
+    chrome.runtime.sendMessage(message, (response)=>{ 
+      if(chrome.runtime.lastError){
+        console.error(`Popup: Msg Err (${message.action||message.message}):`, chrome.runtime.lastError.message); 
+        if(callback)callback({success:false, error:chrome.runtime.lastError.message});
+      } else {
+        console.log("Popup: Received response:", response); 
+        if(callback)callback(response);
+      }
+    }); 
+  }
 
   // --- Load all settings on popup open ---
   chrome.storage.sync.get(
-    ["extensionEnabled", "isPremium", "totalFreeTierUsageCount", "enableNegativeAnimation", "enablePositiveAnimation"],
-    (data) => { if(chrome.runtime.lastError){console.error("Popup: Load settings err:",chrome.runtime.lastError);if(tierInfo)tierInfo.textContent="Error loading";return;} const isEnabled=data.extensionEnabled!==!1; toggleSwitch.checked=isEnabled; updateStatusLabel(isEnabled); updateTierInfo(data.isPremium===!0, data.totalFreeTierUsageCount||0); negAnimCheckbox.checked=data.enableNegativeAnimation!==!1; posAnimCheckbox.checked=data.enablePositiveAnimation!==!1; updatePopupUIEnabledState(isEnabled); }
+    ["extensionEnabled", "isPremium", "totalFreeTierUsageCount"], // Removed "enableNegativeAnimation", "enablePositiveAnimation"
+    (data) => { 
+      if(chrome.runtime.lastError){
+        console.error("Popup: Load settings err:",chrome.runtime.lastError);
+        if(tierInfo)tierInfo.textContent="Error loading";
+        return;
+      } 
+      const isEnabled=data.extensionEnabled!==false; 
+      if (toggleSwitch) toggleSwitch.checked=isEnabled; 
+      updateStatusLabel(isEnabled); 
+      updateTierInfo(data.isPremium===true, data.totalFreeTierUsageCount||0); 
+      // Removed: negAnimCheckbox.checked, posAnimCheckbox.checked
+      updatePopupUIEnabledState(isEnabled); 
+    }
   );
 
 
   // --- Event Listeners ---
 
   // Main Extension Toggle
-  toggleSwitch.addEventListener("change", () => { const isEnabled=toggleSwitch.checked; updateStatusLabel(isEnabled); chrome.storage.sync.set({extensionEnabled:isEnabled},()=>{if(chrome.runtime.lastError)console.error("Popup: Err save toggle:",chrome.runtime.lastError);}); sendMessageToBackground({message:"updateState",enabled:isEnabled}); updatePopupUIEnabledState(isEnabled); });
+  if (toggleSwitch) {
+    toggleSwitch.addEventListener("change", () => { 
+      const isEnabled=toggleSwitch.checked; 
+      updateStatusLabel(isEnabled); 
+      chrome.storage.sync.set({extensionEnabled:isEnabled},()=>{if(chrome.runtime.lastError)console.error("Popup: Err save toggle:",chrome.runtime.lastError);}); 
+      sendMessageToBackground({message:"updateState",enabled:isEnabled}); 
+      updatePopupUIEnabledState(isEnabled); 
+    });
+  }
 
-  // Animation Toggles
-  negAnimCheckbox.addEventListener("change", () => { const isChecked=negAnimCheckbox.checked; chrome.storage.sync.set({enableNegativeAnimation:isChecked},()=>{if(chrome.runtime.lastError)console.error("Popup: Err save neg anim:",chrome.runtime.lastError);}); sendMessageToBackground({message:"updateAnimationSetting",setting:"negative",enabled:isChecked}); });
-  posAnimCheckbox.addEventListener("change", () => { const isChecked=posAnimCheckbox.checked; chrome.storage.sync.set({enablePositiveAnimation:isChecked},()=>{if(chrome.runtime.lastError)console.error("Popup: Err save pos anim:",chrome.runtime.lastError);}); sendMessageToBackground({message:"updateAnimationSetting",setting:"positive",enabled:isChecked}); });
+  // Animation Toggles - Removed, as they are in options.js now
 
   // Upgrade Button
-  upgradeButton.addEventListener("click", () => { if(toggleSwitch.checked){console.log("Upgrade clicked.");chrome.tabs.create({url:"https://noosai.co.uk"});}});
+  if (upgradeButton) {
+    upgradeButton.addEventListener("click", () => { 
+      if(toggleSwitch && toggleSwitch.checked){
+        console.log("Upgrade clicked.");
+        chrome.tabs.create({url:"https://noosai.co.uk"});
+      }
+    });
+  }
 
   // License Key Verification Button
-  if (verifyLicenseButton) { verifyLicenseButton.addEventListener("click", () => { if(!toggleSwitch.checked){if(licenseStatus){licenseStatus.textContent="Enable extension first.";licenseStatus.style.color='orange';setTimeout(()=>{if(licenseStatus)licenseStatus.textContent='';licenseStatus.style.color='var(--primary-neon-blue)';},2500);}return;} const key=licenseKeyInput?licenseKeyInput.value.trim():''; if(!key){if(licenseStatus){licenseStatus.textContent="Please enter a key.";licenseStatus.style.color='red';} setTimeout(()=>{if(licenseStatus){licenseStatus.textContent='';licenseStatus.style.color='var(--primary-neon-blue)';}},2000);return;} if(licenseStatus){licenseStatus.textContent="Verifying...";licenseStatus.style.color='#aaa';} sendMessageToBackground({action:"verifyLicenseKey",licenseKey:key},(response)=>{ if(!licenseStatus)return; if(chrome.runtime.lastError){console.error("Popup: Verify Msg Err:",chrome.runtime.lastError);licenseStatus.textContent="Verification error.";licenseStatus.style.color='red';}else if(response?.success&&response?.isPremium){licenseStatus.textContent="Premium Activated!";licenseStatus.style.color='var(--primary-neon-blue)';chrome.storage.sync.get("totalFreeTierUsageCount",(data)=>{updateTierInfo(!0,data.totalFreeTierUsageCount||0);updatePopupUIEnabledState(!0);});}else{licenseStatus.textContent=response?.message||"Invalid or inactive key.";licenseStatus.style.color='red';} setTimeout(()=>{if(licenseStatus&&licenseStatus.textContent!==""){licenseStatus.textContent='';licenseStatus.style.color='var(--primary-neon-blue)';}},4000);});}); }
-  else { console.warn("License verify button not found."); }
+  if (verifyLicenseButton) { 
+    verifyLicenseButton.addEventListener("click", () => { 
+      if(toggleSwitch && !toggleSwitch.checked){
+        if(licenseStatus){
+          licenseStatus.textContent="Enable extension first.";
+          licenseStatus.style.color='orange';
+          setTimeout(()=>{if(licenseStatus)licenseStatus.textContent='';licenseStatus.style.color='var(--primary-neon-blue)';},2500);
+        }
+        return;
+      } 
+      const key=licenseKeyInput?licenseKeyInput.value.trim():''; 
+      if(!key){
+        if(licenseStatus){
+          licenseStatus.textContent="Please enter a key.";
+          licenseStatus.style.color='red';
+        } 
+        setTimeout(()=>{if(licenseStatus){licenseStatus.textContent='';licenseStatus.style.color='var(--primary-neon-blue)';}},2000);
+        return;
+      } 
+      if(licenseStatus){
+        licenseStatus.textContent="Verifying...";
+        licenseStatus.style.color='#aaa';
+      } 
+      sendMessageToBackground({action:"verifyLicenseKey",licenseKey:key},(response)=>{ 
+        if(!licenseStatus)return; 
+        if(chrome.runtime.lastError){
+          console.error("Popup: Verify Msg Err:",chrome.runtime.lastError);
+          licenseStatus.textContent="Verification error.";
+          licenseStatus.style.color='red';
+        } else if(response?.success&&response?.isPremium){
+          licenseStatus.textContent="Premium Activated!";
+          licenseStatus.style.color='var(--primary-neon-blue)';
+          chrome.storage.sync.get("totalFreeTierUsageCount",(data)=>{
+            updateTierInfo(true,data.totalFreeTierUsageCount||0);
+            if (toggleSwitch) updatePopupUIEnabledState(toggleSwitch.checked);
+          });
+        } else {
+          licenseStatus.textContent=response?.message||"Invalid or inactive key.";
+          licenseStatus.style.color='red';
+        } 
+        setTimeout(()=>{if(licenseStatus&&licenseStatus.textContent!==""){licenseStatus.textContent='';licenseStatus.style.color='var(--primary-neon-blue)';}},4000);
+      });
+    }); 
+  } else { 
+    console.warn("License verify button not found."); 
+  }
 
-  // Page Summary Button Listener
-  if (summarizePageButton) { summarizePageButton.addEventListener("click", () => { if (!toggleSwitch.checked) { if (licenseStatus) { licenseStatus.textContent = "Enable extension first."; licenseStatus.style.color = 'orange'; setTimeout(() => { if(licenseStatus) licenseStatus.textContent = ''; }, 2500); } return; } console.log("Popup: Sending summarizePage msg."); const oText=summarizePageButton.textContent; summarizePageButton.textContent="Processing..."; summarizePageButton.disabled = true; sendMessageToBackground({ action: "summarizePage" }, (response) => { setTimeout(() => { if(summarizePageButton) { summarizePageButton.textContent = oText; summarizePageButton.disabled = !toggleSwitch.checked; }}, 1000); }); setTimeout(() => window.close(), 100); }); }
-  else { console.warn("Summarize Page button not found."); }
+  // Page Summary Button Listener - Removed, as button is no longer in popup.html
 
-  // Options Link
-  if(optionsLink) optionsLink.addEventListener("click", (event) => { event.preventDefault();if(chrome.runtime.openOptionsPage){chrome.runtime.openOptionsPage();}else{window.open(chrome.runtime.getURL('options.html'));}});
+  // Options Link - Removed, as link is no longer in popup.html
 
   // --- Custom Text Analysis Button Listeners ---
   function handleCustomAnalysis(analysisType) {
-    if (!toggleSwitch.checked) {
+    if (toggleSwitch && !toggleSwitch.checked) {
       if(customAnalysisStatus) { customAnalysisStatus.textContent = "Enable extension first."; customAnalysisStatus.style.color = 'orange'; }
       setTimeout(() => { if(customAnalysisStatus) customAnalysisStatus.textContent = ''; }, 2500);
       return;
     }
-    const text = customAnalysisText.value.trim();
-    const targetLanguage = outputLanguageSelect.value;
+    const text = customAnalysisText ? customAnalysisText.value.trim() : "";
+    const targetLanguage = outputLanguageSelect ? outputLanguageSelect.value : "auto";
 
     if (!text) {
       if(customAnalysisStatus) { customAnalysisStatus.textContent = "Please enter text to analyze."; customAnalysisStatus.style.color = 'red'; }
@@ -131,7 +231,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Special check for translate action with "auto" language
     if (analysisType === 'translate' && targetLanguage === 'auto') {
         if(customAnalysisStatus) { customAnalysisStatus.textContent = "Please select a specific target language for translation."; customAnalysisStatus.style.color = 'orange'; }
-        setTimeout(() => { if(customAnalysisStatus) customAnalysisStatus.textContent = ''; }, 3000);
+        setTimeout(() => { if(customAnalysisSstatus) customAnalysisStatus.textContent = ''; }, 3000);
         return;
     }
 
@@ -140,17 +240,15 @@ document.addEventListener("DOMContentLoaded", () => {
     sendMessageToBackground({
       action: "analyzeCustomText",
       text: text,
-      analysisType: analysisType, // "sentiment", "summarize", "keywords", "translate"
+      analysisType: analysisType, 
       targetLanguage: targetLanguage
     }, (response) => {
-      // The main result is shown in the content script panel.
-      // Here, we can just clear the "Processing..." message or show a success/error specific to the popup interaction.
       if (customAnalysisStatus) {
         customAnalysisStatus.textContent = response?.success ? "Request sent!" : (response?.error || "Error sending request.");
         customAnalysisStatus.style.color = response?.success ? 'var(--primary-neon-blue)' : 'red';
         setTimeout(() => { if(customAnalysisStatus) customAnalysisStatus.textContent = ''; }, 2000);
       }
-      if (response?.success) setTimeout(() => window.close(), 250); // Close popup on success
+      if (response?.success) setTimeout(() => window.close(), 250); 
     });
   }
 
@@ -158,5 +256,8 @@ document.addEventListener("DOMContentLoaded", () => {
   if(analyzeSummaryCustom) analyzeSummaryCustom.addEventListener("click", () => handleCustomAnalysis("summarize"));
   if(analyzeKeywordsCustom) analyzeKeywordsCustom.addEventListener("click", () => handleCustomAnalysis("keywords"));
   if(analyzeTranslateCustom) analyzeTranslateCustom.addEventListener("click", () => handleCustomAnalysis("translate"));
+  if(analyzeExplainCustom) analyzeExplainCustom.addEventListener("click", () => handleCustomAnalysis("explain"));
+  if(analyzeSimplifyCustom) analyzeSimplifyCustom.addEventListener("click", () => handleCustomAnalysis("simplify"));
+  if(analyzeSearchCustom) analyzeSearchCustom.addEventListener("click", () => handleCustomAnalysis("search"));
 
 }); // End DOMContentLoaded

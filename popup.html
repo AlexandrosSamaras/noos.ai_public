@@ -15,37 +15,8 @@
     <span class="toggle-label status-label">Off</span> <!-- Status text -->
   </div>
 
-  <hr class="divider">
+  <!-- Animation toggles moved to options.html -->
 
-  <!-- Animation Toggles -->
-  <div class="settings-section">
-    <div class="setting-label">Animations:</div>
-    <div class="toggle-container animation-toggle">
-      <span class="toggle-label-small">Negative Shake</span>
-      <label class="switch small-switch">
-        <input type="checkbox" id="enableNegativeAnimationPopup">
-        <span class="slider round"></span>
-      </label>
-    </div>
-    <div class="toggle-container animation-toggle">
-      <span class="toggle-label-small">Positive Pulse</span>
-      <label class="switch small-switch">
-        <input type="checkbox" id="enablePositiveAnimationPopup">
-        <span class="slider round"></span>
-      </label>
-    </div>
-  </div>
-
-  <hr class="divider">
-
-
- <!-- NEW: Page Actions -->
- <div class="settings-section">
-  <div class="setting-label">Page Actions:</div>
-  <button id="summarizePageButton" class="button button-secondary page-action-button">Summarize This Page</button>
-</div>
-
-<hr class="divider">
 
 <div class="section custom-text-section">
   <h3 class="section-title">Analyze Custom Text</h3>
@@ -92,6 +63,10 @@
     </select>
   </div>
   <div class="custom-action-buttons">
+    <!-- Reordered and standardized buttons -->
+    <button id="analyzeSearchCustom" class="button button-secondary">AI Search</button>
+    <button id="analyzeExplainCustom" class="button button-secondary">Explain</button>
+    <button id="analyzeSimplifyCustom" class="button button-secondary">Simplify</button>
     <button id="analyzeSentimentCustom" class="button button-secondary">Sentiment</button>
     <button id="analyzeSummaryCustom" class="button button-secondary">Summary</button>
     <button id="analyzeKeywordsCustom" class="button button-secondary">Keywords</button>
@@ -118,11 +93,6 @@
 
   <!-- Upgrade Button -->
   <button id="upgradeButton">Upgrade to Premium</button>
-
-  <!-- Link to Full Options (for API Key - kept for consistency for now) -->
-  <div class="options-link-container">
-    <a href="#" id="openOptionsLink">Options</a> <!-- Simplified link text -->
-  </div>
 
   <script src="popup.js"></script>
 </body>
