@@ -171,30 +171,75 @@ function performAnalysisAction(tabId, textToAnalyze, action, requiresPremium, po
                 text: textToAnalyze,
                 targetLanguage: targetLanguage // Pass the target language
             }) })
-        .then(response => { if (!response.ok) { return response.text().then(text => { throw new Error(`Service Error (${response.status}) ${text.substring(0,100)}`); }); } return response.json(); })
-        .then(data => {
-             if (!data || !data.action) { throw new Error("Invalid response format from analysis service."); }
-             console.log("BG: Received successful data from backend:", data);
-             chrome.tabs.sendMessage(tabId, { action: "showResult", resultType: data.action, data: data, position: position })
-             .catch(e => {
-                console.warn(`BG: Error sending final result message for action ${action} to tab ${tabId}:`, e.message);
-                if (e.message && e.message.includes("Could not establish connection. Receiving end does not exist.")) {
-                    // Check if we have notification permission before trying to use it
-                    chrome.permissions.contains({ permissions: ["notifications"] }, (granted) => {
-                        if (granted) {
-                            chrome.notifications.create({
-                                type: "basic",
-                                iconUrl: chrome.runtime.getURL("icons/icon48.png"), // Ensure you have this icon
-                                title: "NoosAI Analysis Error",
-                                message: `Could not display results on the current page. The page may be restricted or not supported. (Action: ${action})`
-                            });
-                        } else {
-                            console.warn("BG: Notifications permission not granted. Cannot show user notification for send error.");
+        .then(response => {
+            if (!response.ok) {
+                return response.text().then(text => { throw new Error(`Service Error (${response.status}) ${text.substring(0, 100)}`); });
+            }
+            // Check content type for streaming (specifically for search)
+            if (action === 'search' && response.headers.get("Content-Type")?.includes("application/jsonl")) {
+                console.log(`BG: Detected streaming response for action: ${action}`);
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = "";
+
+                function processStream() {
+                    reader.read().then(({ done, value }) => {
+                        if (done) {
+                            if (buffer.trim()) { // Process any remaining buffer content
+                                try {
+                                    const jsonObject = JSON.parse(buffer.trim());
+                                    handleStreamObject(tabId, jsonObject, position, action);
+                                } catch (e) {
+                                    console.error("BG: Error parsing final JSON object from stream buffer:", e, "Buffer:", buffer);
+                                }
+                            }
+                            console.log("BG: Stream finished for action:", action);
+                            // Note: A final "streamComplete" type message is sent from server as 'streamEnd'
+                            return;
                         }
+                        buffer += decoder.decode(value, { stream: true });
+                        let lines = buffer.split('\n');
+                        buffer = lines.pop(); // Keep last partial line in buffer
+
+                        lines.forEach(line => {
+                            if (line.trim()) {
+                                try {
+                                    const jsonObject = JSON.parse(line);
+                                    handleStreamObject(tabId, jsonObject, position, action);
+                                } catch (e) {
+                                    console.error("BG: Error parsing JSON object from stream:", e, "Line:", line);
+                                }
+                            }
+                        });
+                        processStream(); // Continue reading
+                    }).catch(streamError => {
+                        console.error(`BG: Error reading from stream for action ${action}:`, streamError);
+                        // Send an error message to the content script
+                        const errorPayload = { type: 'error', payload: { message: 'Stream reading error', details: streamError.message } };
+                        handleStreamObject(tabId, errorPayload, position, action);
                     });
                 }
-            });
-         })
+                processStream(); // Start processing the stream
+            } else {
+                // Handle non-streaming JSON response (for actions other than search, or if search fails to stream)
+                console.log(`BG: Detected non-streaming response for action: ${action}`);
+                return response.json().then(data => {
+                    if (!data || !data.action) { throw new Error("Invalid response format from analysis service."); }
+                    console.log("BG: Received successful non-streaming data from backend:", data);
+                    chrome.tabs.sendMessage(tabId, { action: "showResult", resultType: data.action, data: data, position: position })
+                        .catch(e => {
+                            console.warn(`BG: Error sending final result message for action ${action} to tab ${tabId}:`, e.message);
+                            if (e.message && e.message.includes("Could not establish connection. Receiving end does not exist.")) {
+                                chrome.permissions.contains({ permissions: ["notifications"] }, (granted) => {
+                                    if (granted) {
+                                        chrome.notifications.create({ type: "basic", iconUrl: chrome.runtime.getURL("icons/icon48.png"), title: "NoosAI Analysis Error", message: `Could not display results on the current page. (Action: ${action})` });
+                                    }
+                                });
+                            }
+                        });
+                });
+            }
+        })
         .catch(error => {
              console.error(`BG: Error during backend fetch/processing for action ${action}:`, error);
              chrome.tabs.sendMessage(tabId, { action: "showResult", resultType: "error", data: { error: `Error: ${error.message || 'Unknown backend error.'}` }, position: position }).catch(e => console.warn("BG: Error sending fetch error message:", e.message));
@@ -202,6 +247,25 @@ function performAnalysisAction(tabId, textToAnalyze, action, requiresPremium, po
     }); // End storage.get callback
 } // End performAnalysisAction
 
+// --- Helper to Handle Stream Objects ---
+function handleStreamObject(tabId, streamObject, position, originalAction) {
+    // console.log("BG: Handling stream object:", streamObject.type, "for action:", originalAction, "Payload:", streamObject.payload);
+    const messagePayload = { position: position, data: streamObject.payload }; 
+
+    switch (streamObject.type) {
+        case 'metadata': messagePayload.action = "initializeStreamPanel"; messagePayload.data = { action: streamObject.action }; break; // Pass original action from metadata
+        case 'chunk': messagePayload.action = "appendResultChunk"; break;
+        case 'citations': messagePayload.action = "displayCitations"; messagePayload.data = { citations: streamObject.payload }; break; // Ensure payload is correctly structured
+        case 'streamEnd': messagePayload.action = "finalizeStreamPanel"; break;
+        case 'error': // This will be handled by showResult in content.js
+            messagePayload.action = "showResult";
+            messagePayload.resultType = "error"; // Explicitly set resultType for error
+            messagePayload.data = { error: streamObject.payload.message, details: streamObject.payload.details };
+            break;
+        default: console.warn("BG: Unknown stream object type:", streamObject.type); return; 
+    }
+    chrome.tabs.sendMessage(tabId, messagePayload).catch(e => console.warn(`BG: Error sending ${messagePayload.action} for ${originalAction}:`, e.message));
+}
 
 // --- Main Message Listener ---
 chrome.runtime.onMessage.addListener(

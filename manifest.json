@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Noos.AI", 
-  "version": "2.0", 
-  "description": "Explain concepts or simplify them, Search and Instantly analyze sentiment, translate, summarize, or extract keywords from selected text.", 
+  "version": "2.1", 
+  "description": "Explain concepts, simplify them, Search, Instantly analyze sentiment, translate, summarize, extract keywords from text.", 
   "permissions": [
     "activeTab",
     "scripting",

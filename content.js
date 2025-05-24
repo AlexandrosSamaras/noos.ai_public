@@ -363,6 +363,9 @@ function handleTranslateSummaryClick() {
 }
 
 try {
+    let currentStreamingAction = null; // Store the action type for streaming
+    // let accumulatedStreamedText = ""; // Server sends fullTextForCopy, so client-side accumulation might not be strictly needed here
+
     chrome.runtime.onMessage.addListener(
         function(request, sender, sendResponse) {
             console.log("CS: Message listener invoked, Request:", request);
@@ -373,6 +376,82 @@ try {
             if (request.message === "updateState") { window.extensionEnabled = request.enabled; if (!request.enabled) hideResultPanel(); sendResponse({ received: true }); return true; }
             else if (request.message === "updateAnimationSetting") { if (request.setting === "negative") allowNegativeAnimation = request.enabled; else if (request.setting === "positive") allowPositiveAnimation = request.enabled; sendResponse({ received: true }); return true; }
             else if (request.action === "hideTooltip") { hideResultPanel(); }
+
+            // --- Streaming Handlers (Primarily for Search) ---
+            else if (request.action === "initializeStreamPanel") {
+                console.log("CS Listener: Handling initializeStreamPanel. Data:", request.data);
+                currentStreamingAction = request.data.action; // Should be 'search'
+
+                let panelTitle = "Processing...";
+                let initialContentMessage = '<p style="color: #b5c8e4; text-align: center; padding-top: 20px;">Processing request...</p>';
+
+                if (currentStreamingAction === 'search') {
+                    panelTitle = "AI Search";
+                    initialContentMessage = '<p style="color: #b5c8e4; text-align: center; padding-top: 20px; padding-bottom: 20px;">Searching the web & synthesizing results...</p>';
+                }
+                // Add other cases if more actions become streaming in the future
+
+                createResultPanel(); // Ensure panel exists
+                const titleEl = document.getElementById('noosai-panel-title');
+                const contentArea = document.getElementById('noosai-panel-content');
+                const copyButton = document.getElementById('noosai-panel-copy-button');
+                const translateSummaryButton = document.getElementById('noosai-translate-summary-button');
+                const translateSummaryContainer = document.getElementById('noosai-translate-summary-container');
+
+                if (titleEl) titleEl.textContent = panelTitle;
+                if (contentArea) contentArea.innerHTML = initialContentMessage; // Set initial message
+                if (copyButton) copyButton.style.display = 'none';
+                if (translateSummaryButton) translateSummaryButton.style.display = 'none';
+                if (translateSummaryContainer) translateSummaryContainer.style.display = 'none';
+
+                if (resultPanel) {
+                    resultPanel.classList.remove('panel-hidden');
+                    resultPanel.classList.add('panel-visible');
+                    resultPanel.style.backgroundColor = 'rgba(15, 23, 42, 0.97)'; // Default non-error style
+                }
+                 sendResponse({ received: true }); return true;
+            }
+            else if (request.action === "appendResultChunk") {
+                const contentArea = document.getElementById('noosai-panel-content');
+                if (contentArea && request.data) { // request.data is the chunk string itself
+                    // If it's the first chunk for a search, clear the "Searching..." message
+                    if (currentStreamingAction === 'search' && contentArea.innerHTML.includes("Searching the web")) {
+                        contentArea.innerHTML = '';
+                    }
+                    const textNode = document.createTextNode(request.data); // Append new chunk
+                    contentArea.appendChild(textNode);
+                    contentArea.scrollTop = contentArea.scrollHeight; // Auto-scroll
+                }
+                 sendResponse({ received: true }); return true;
+            }
+            else if (request.action === "displayCitations") {
+                console.log("CS Listener: Handling displayCitations. Data:", request.data);
+                const contentArea = document.getElementById('noosai-panel-content');
+                const citations = request.data?.citations; // Expecting { citations: [...] }
+                if (contentArea && citations && citations.length > 0) {
+                    let citationsHtml = '<div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #334155;">';
+                    citationsHtml += '<p style="font-weight: 500; margin-bottom: 5px; color: #b5c8e4;">Sources:</p><ul style="list-style-type: disc; padding-left: 20px; margin:0;">';
+                    citations.forEach((citation) => {
+                        if (citation.uri && citation.uri.trim() !== '') {
+                            citationsHtml += `<li style="margin-bottom: 5px; font-size:0.9em;"><a href="${escapeHTML(citation.uri)}" target="_blank" rel="noopener noreferrer" style="color: var(--link-color);">${escapeHTML(citation.uri)}</a></li>`;
+                        }
+                    });
+                    citationsHtml += '</ul></div>';
+                    contentArea.insertAdjacentHTML('beforeend', citationsHtml);
+                    contentArea.scrollTop = contentArea.scrollHeight;
+                }
+                 sendResponse({ received: true }); return true;
+            }
+            else if (request.action === "finalizeStreamPanel") {
+                console.log("CS Listener: Handling finalizeStreamPanel. Data:", request.data);
+                const titleEl = document.getElementById('noosai-panel-title');
+                if (currentStreamingAction === 'search' && titleEl) {
+                    titleEl.textContent = "AI Search - Results"; // Update title on completion
+                }
+                finalizePanelUIUpdates(request.data.fullTextForCopy, currentStreamingAction);
+                currentStreamingAction = null; // Reset
+                 sendResponse({ received: true }); return true;
+            }
 
             // Display ALL feedback in the panel
             else if (request.action === "showProcessing") {
@@ -385,6 +464,10 @@ try {
             }
             else if (request.action === "showResult") {
                 console.log("CS Listener: Handling showResult. Data:", request.data);
+                // This handler is now primarily for non-streaming results or errors from stream.
+                // If a stream was active and an error occurred, currentStreamingAction might still be set.
+                // We reset it here to ensure panel state is correct.
+                if (currentStreamingAction) currentStreamingAction = null;
                 // Hide any previous panel state immediately before showing new one? Maybe not necessary.
                 // hideResultPanel();
                 const rawResultData = request.data || {}; // Ensure data exists
@@ -437,6 +520,32 @@ try {
     ); // End addListener
     console.log("Content Script: Message listener successfully added.");
 } catch(error) { console.error("Content Script: ERROR setting up message listener:", error); }
+
+// Renamed from finalizePanel to avoid confusion with a potential generic panel finalizer
+function finalizePanelUIUpdates(fullTextForCopy, actionType) {
+    const contentArea = document.getElementById('noosai-panel-content');
+    const copyButton = document.getElementById('noosai-panel-copy-button');
+    const translateSummaryButton = document.getElementById('noosai-translate-summary-button');
+    const translateSummaryContainer = document.getElementById('noosai-translate-summary-container');
+
+    if (contentArea && fullTextForCopy) {
+        contentArea.setAttribute('data-copy-text', fullTextForCopy);
+        if (actionType === 'summarize') { // This part is for non-streaming summarize
+            contentArea.setAttribute('data-original-summary', fullTextForCopy);
+        }
+    }
+    if (copyButton) copyButton.style.display = 'block';
+
+    // Show translate UI only for non-streaming summarize results that are not errors
+    const isError = resultPanel && resultPanel.style.backgroundColor.includes('70, 20, 30');
+    if (actionType === 'summarize' && !isError) {
+        if (translateSummaryButton) translateSummaryButton.style.display = 'inline-block';
+        if (translateSummaryContainer) translateSummaryContainer.style.display = 'block';
+    } else if (actionType !== 'summarize' || isError) { // Hide for search or other streaming actions, or if error
+        if (translateSummaryButton) translateSummaryButton.style.display = 'none';
+        if (translateSummaryContainer) translateSummaryContainer.style.display = 'none';
+    }
+}
 
 // --- Utility: Make Element Draggable ---
 function makeElementDraggable(elmnt, dragHandle) {
