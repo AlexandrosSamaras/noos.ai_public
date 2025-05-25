@@ -5,7 +5,6 @@
 const BACKEND_ANALYZE_URL = "https://sentiment-analyzer-service-872183226779.us-central1.run.app/analyze";
 const BACKEND_VERIFY_URL = "https://sentiment-analyzer-service-872183226779.us-central1.run.app/verify-license";
 const EXTENSION_SECRET = "4TheFuture2030@"; // CHANGE LATER!
-const FREE_TIER_LIMIT = 5;
 
 // --- Context Menu IDs ---
 const CONTEXT_MENU_ID_SENTIMENT = "noosai_sentiment";
@@ -146,20 +145,6 @@ function performAnalysisAction(tabId, textToAnalyze, action, requiresPremium, po
                 position: position
             }).catch(e => console.warn("BG: Error sending premium required message:", e.message)); return;
         }
-        // Free Tier Limit Check
-        if (action === 'sentiment' && !isPremium) {
-            if (currentUsageCount >= FREE_TIER_LIMIT) {
-                console.log("BG: Free tier limit reached:", currentUsageCount);
-                 // *** Send Specific Limit Reached Error via showResult ***
-                 chrome.tabs.sendMessage(tabId, {
-                     action: "showResult", resultType: "error",
-                     data: { error: `Free analysis limit (${FREE_TIER_LIMIT}) reached. Please upgrade.` }, // Specific message
-                     position: position
-                    }).catch(e => console.warn("BG: Error sending limit message:", e.message)); return;
-            }
-            currentUsageCount++; console.log("BG: Incrementing free tier usage to:", currentUsageCount);
-            chrome.storage.sync.set({ totalFreeTierUsageCount: currentUsageCount }, () => { if(chrome.runtime.lastError) console.error("BG: Error saving usage count:", chrome.runtime.lastError.message); else console.log("BG: Usage count saved."); });
-        }
 
         // --- Call Backend Service ---
         console.log(`BG: Sending action '${action}' to backend...`);
@@ -256,7 +241,11 @@ function handleStreamObject(tabId, streamObject, position, originalAction) {
         case 'metadata': messagePayload.action = "initializeStreamPanel"; messagePayload.data = { action: streamObject.action }; break; // Pass original action from metadata
         case 'chunk': messagePayload.action = "appendResultChunk"; break;
         case 'citations': messagePayload.action = "displayCitations"; messagePayload.data = { citations: streamObject.payload }; break; // Ensure payload is correctly structured
-        case 'streamEnd': messagePayload.action = "finalizeStreamPanel"; break;
+        case 'streamEnd':
+            messagePayload.action = "finalizeStreamPanel";
+            // streamObject is { type: 'streamEnd', fullTextForCopy: "..." }
+            messagePayload.data = { fullTextForCopy: streamObject.fullTextForCopy }; // Correctly package the data
+            break;
         case 'error': // This will be handled by showResult in content.js
             messagePayload.action = "showResult";
             messagePayload.resultType = "error"; // Explicitly set resultType for error
@@ -326,6 +315,21 @@ chrome.runtime.onMessage.addListener(
             });
             return false; // Not expecting a direct response to content.js for this specific message
         }
+        else if (request.action === "summarizeExistingText") {
+            console.log("BG: Received summarizeExistingText request from content script:", request);
+            chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+                if (chrome.runtime.lastError || !tabs || tabs.length === 0 || !tabs[0]?.id) {
+                    console.error("BG: Could not get active tab for summarizeExistingText:", chrome.runtime.lastError?.message || "No tab");
+                    return;
+                }
+                const tabId = tabs[0].id;
+                const requiresPremium = true; // Summarization is premium
+                // Position can be generic as panel is already open
+                performAnalysisAction(tabId, request.textToSummarize, "summarize", requiresPremium, { type: "panelAction" }, request.targetLanguage || "auto");
+            });
+            return false; // Not expecting a direct response for this specific message, result comes via showResult
+        }
+
 
         console.warn("BG: Runtime message type not handled:", request);
         return false;

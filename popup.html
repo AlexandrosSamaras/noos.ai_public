@@ -5,20 +5,7 @@
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-  <!-- Main Toggle -->
-  <div class="toggle-container main-toggle">
-    <span class="toggle-label">Extension:</span>
-    <label class="switch">
-      <input type="checkbox" id="toggleSwitch">
-      <span class="slider round"></span>
-    </label>
-    <span class="toggle-label status-label">Off</span> <!-- Status text -->
-  </div>
-
-  <!-- Animation toggles moved to options.html -->
-
-
-<div class="section custom-text-section">
+  <div class="section custom-text-section">
   <h3 class="section-title">Analyze Custom Text</h3>
   <textarea id="customAnalysisText" placeholder="Paste text here to analyze..."></textarea>
   <div class="language-select-container">
@@ -34,7 +21,7 @@
       <option value="nl">Dutch</option>
       <option value="en">English</option>
       <option value="et">Estonian</option>
-      <option value="fi">Finnish</option> 
+      <option value="fi">Finnish</option>
       <option value="fr">French</option>
       <option value="de">German</option>
       <option value="el">Greek</option>
@@ -59,11 +46,9 @@
       <option value="tr">Turkish</option>
       <option value="uk">Ukrainian</option>
       <option value="vi">Vietnamese</option>
-      <!-- Add more languages as needed -->
-    </select>
+      </select>
   </div>
   <div class="custom-action-buttons">
-    <!-- Reordered and standardized buttons -->
     <button id="analyzeSearchCustom" class="button button-secondary">AI Search</button>
     <button id="analyzeExplainCustom" class="button button-secondary">Explain</button>
     <button id="analyzeSimplifyCustom" class="button button-secondary">Simplify</button>
@@ -77,21 +62,14 @@
 
 
 
-  <!-- NEW: License Key Section -->
-  <div class="license-section"> <!-- Add class for easier hiding/showing -->
-    <label for="licenseKeyInput" class="setting-label license-label">Activate Premium:</label>
+  <div class="license-section"> <label for="licenseKeyInput" class="setting-label license-label">Activate Premium:</label>
     <input type="text" id="licenseKeyInput" placeholder="Enter License Key">
     <button id="verifyLicenseButton" class="button button-small">Verify Key</button>
-    <div id="licenseStatus" class="status-message"></div> <!-- For feedback -->
-  </div>
+    <div id="licenseStatus" class="status-message"></div> </div>
 
-  <hr class="divider">
-
-  <!-- Tier & Usage Info -->
   <div id="tierInfo"></div>
   <div id="usageCounter"></div>
 
-  <!-- Upgrade Button -->
   <button id="upgradeButton">Upgrade to Premium</button>
 
   <script src="popup.js"></script>

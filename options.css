@@ -11,11 +11,18 @@ body {
 }
 
 h1 {
-  color: #343a40; /* Slightly darker heading */
-  border-bottom: 1px solid #dee2e6; /* Lighter border */
-  padding-bottom: 10px;
-  margin-bottom: 25px;
-  font-weight: 500; /* Medium weight */
+    color: #343a40; /* Original color */
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 10px;
+    margin-bottom: 25px;
+    font-weight: 500;
+    /* New: Subtle glow */
+    color: #007bff; /* Or a light blue that fits light theme */
+    text-shadow: 0 0 5px rgba(0, 123, 255, 0.3);
+    transition: text-shadow 0.3s ease;
+}
+h1:hover {
+    text-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
 }
 
 .option-group {
@@ -52,21 +59,28 @@ input[type="password"]:focus {
 }
 
 button {
-  background-color: #007bff; /* Primary blue */
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 6px; /* Consistent rounded corners */
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 500;
-  transition: background-color 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px; /* Slightly more rounded */
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 500;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease; /* Add transform */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); /* More prominent shadow */
 }
 
 button:hover {
-  background-color: #0056b3; /* Darker blue on hover */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    background-color: #0056b3;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Stronger shadow on hover */
+    transform: translateY(-1px); /* Slight lift */
+}
+
+button:active {
+    background-color: #003f82; /* Even darker on active */
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); /* Push down shadow */
+    transform: translateY(0); /* Reset lift */
 }
 
 #status {

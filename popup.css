@@ -13,6 +13,10 @@
     --font-secondary: 'Roboto', 'Google Sans', sans-serif;
     --neon-blue-glow-subtle: 0 0 3px var(--primary-neon-blue), 0 0 6px rgba(0, 255, 255, 0.5);
     --neon-magenta-glow-subtle: 0 0 3px var(--secondary-neon-magenta), 0 0 6px rgba(0, 89, 255, 0.5);
+
+    /* New/Adjusted for Logo Name Prominence */
+    --logo-name-glow: 0 0 5px var(--primary-neon-blue), 0 0 10px rgba(0, 255, 255, 0.7); /* Stronger glow */
+    --logo-name-hover-glow: 0 0 8px var(--primary-neon-blue), 0 0 15px rgba(0, 255, 255, 0.9); /* Even stronger on hover */
 }
 
 body {
@@ -27,7 +31,89 @@ body {
     align-items: center; /* <-- Re-enabled for centering */
     min-height: 260px;
     overflow: hidden; /* <-- Added to help enforce rounding */
-    box-shadow: 0 0 15px var(--primary-neon-blue); /* <-- Added glow effect */
+    box-shadow: 0 0 35px var(--primary-neon-blue); /* <-- Added glow effect */
+    animation: popupGlowPulse 2.5s infinite alternate ease-in-out; /* Add this line */
+}
+/* Add this new keyframes rule */
+@keyframes popupGlowPulse {
+    0% {
+        box-shadow: 0 0 15px var(--primary-neon-blue), 0 0 25px rgba(0, 255, 255, 0.4); /* Starting state of glow */
+    }
+    50% {
+        box-shadow: 0 0 35px var(--primary-neon-blue), 0 0 50px rgba(0, 255, 255, 0.7); /* Larger, brighter glow in the middle */
+    }
+    100% {
+        box-shadow: 0 0 15px var(--primary-neon-blue), 0 0 25px rgba(0, 255, 255, 0.4); /* Return to starting state */
+    }
+}
+/* --- Top Bar (Logo & Name Left, Toggle Right) --- */
+.popup-top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px; /* Reduced space below top bar */
+    width: 100%;
+    padding-bottom: 5px; /* Small padding at the bottom of the top bar */
+    border-bottom: 1px solid var(--border-color-dark); /* Separator */
+}
+
+.top-bar-left-group {
+    display: flex;
+    align-items: center;
+}
+
+#popupLogo {
+    width: 28px;
+    height: 28px;
+    display: block; /* Prevents extra space below img */
+    margin-right: 8px; /* Space between logo and app name */
+}
+
+#popupTitle {
+    font-family: var(--font-primary);
+    font-size: 1.3em; /* Increased font size */
+    font-weight: 700; /* Made bolder */
+    color: var(--primary-neon-blue); /* Changed color to neon blue */
+    text-shadow: var(--neon-blue-glow-subtle); /* Added a subtle glow */
+    transition: all 0.3s ease; /* Smooth transition for hover effects */
+}
+
+#popupTitle:hover {
+    color: #fff; /* White on hover for contrast */
+    text-shadow: var(--logo-name-hover-glow); /* Stronger glow on hover */
+    transform: scale(1.05); /* Slightly scale up on hover */
+}
+
+
+.top-bar-right-group { /* Can also be styled by .main-toggle if structure is similar */
+    display: flex;
+    align-items: center;
+}
+
+.top-bar-left-group, .top-bar-right-group {
+    display: flex;
+    align-items: center;
+}
+
+#premiumStatusTopBar {
+    font-size: 0.9em;
+    font-weight: 600; /* Make it a bit bolder */
+    color: var(--text-color-light); /* Brighter text color */
+    margin: 0 10px;
+    padding: 4px 8px; /* Add padding */
+    background-color: rgba(0, 89, 255, 0.2); /* Slight magenta background */
+    border-radius: 10px; /* Rounded corners */
+    border: 1px solid var(--secondary-neon-magenta); /* Magenta border */
+    box-shadow: 0 0 5px rgba(0, 89, 255, 0.5); /* Subtle glow */
+}
+
+
+.status-label {
+    font-size: 11px;
+    color: var(--text-color-medium);
+    margin-left: 8px; /* Space between switch and "On/Off" text */
+    min-width: 25px; /* Ensure "Off" doesn't cause layout shift */
+    text-align: left; /* Keep text aligned left relative to switch */
 }
 
 h3, label, .setting-label, #tierInfo {
@@ -38,10 +124,8 @@ h3, label, .setting-label, #tierInfo {
 }
 
 #tierInfo { margin-bottom: 4px; font-size: 0.9em; font-weight: 500; }
-#usageCounter { font-size: 0.8em; margin-bottom: 10px; text-align: center; color: var(--text-color-medium); width: 100%; }
+#usageCounter { font-size: 0.8em; margin-bottom: 8px; text-align: center; color: var(--text-color-medium); width: 100%; } /* Reduced margin */
 
-.divider { border: none; border-top: 1px solid var(--border-color-dark); margin: 10px 0; width: 100%; }
-/* Ensure dividers in custom section are also full width if needed */
 /* Main Toggle */
 .main-toggle { margin-bottom: 5px; width: 100%; }
 .main-toggle .toggle-label { font-size: 13px; font-weight: 500; color: var(--text-color-light); }
@@ -107,7 +191,7 @@ input:focus + .slider { outline: none; }
 /* --- Custom Text Analysis Section --- */
 .custom-text-section {
     width: 100%;
-    margin-top: 10px; /* Add some space above this section */
+    margin-top: 8px; /* Add some space above this section */
 }
 
 .custom-text-section .section-title { /* Target section title specifically if needed */
@@ -119,7 +203,7 @@ input:focus + .slider { outline: none; }
 .custom-text-section select#outputLanguageSelect {
     width: 100%;
     padding: 10px;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     border: 1px solid var(--border-color-dark);
     border-radius: 8px; /* Inspired by results panel */
     background-color: var(--background-medium); /* Consistent with license input */
@@ -132,7 +216,7 @@ input:focus + .slider { outline: none; }
 }
 
 .custom-text-section textarea#customAnalysisText {
-    min-height: 70px;
+    min-height: 50px;
     resize: vertical;
 }
 
@@ -152,4 +236,90 @@ input:focus + .slider { outline: none; }
 .custom-text-section #customAnalysisStatus {
     text-align: center; /* Center status message for this section */
     width: 100%;
+}
+/* Add to your popup.css or a <style> tag in popup.html */
+.external-links-container {
+  text-align: center;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #334155; /* Matches other separators */
+}
+
+.popup-link {
+  text-decoration: none;
+  font-size: 11px; /* Adjusted for consistency with other small text/buttons */
+  padding: 5px 8px;
+  border-radius: 15px; /* Pill shape */
+  transition: background-color 0.2s ease, color 0.2s ease;
+  border: 1px solid var(--primary-neon-blue); /* Add border like other buttons */
+  background-color: transparent; /* Ensure no default background */
+  box-shadow: none; /* Ensure no glow */
+  color: var(--primary-neon-blue, #00ffff); /* Moved color here for specificity */
+  display: inline-block; /* Ensure they behave like buttons */
+}
+
+.popup-link:hover {
+  color: #fff;
+  background-color: rgba(0, 255, 255, 0.1);
+  text-decoration: none;
+  box-shadow: none; /* Ensure no glow on hover */
+}
+
+/* Specific styling if needed for individual links, e.g., margins */
+/* .feedback-link { margin-left: 15px; } /* Example if you want specific margins */
+/* .privacy-link { margin-top: 8px; display: block; width: fit-content; margin-left: auto; margin-right: auto; } */ /* Example for new line */
+
+/* --- Version Number --- */
+#versionContainer {
+    width: 100%;
+    text-align: center;
+    margin-top: 12px; /* Space above version */
+    padding-bottom: 5px; /* Space at the very bottom of popup */
+}
+#extensionVersion {
+    font-size: 0.75em;
+    color: var(--text-color-medium);
+    opacity: 0.7;
+ }
+
+ .button:active:not(:disabled),
+#verifyLicenseButton.button:active:not(:disabled) {
+    background-color: rgba(0, 255, 255, 0.2); /* Slightly more opaque on active */
+    box-shadow: 0 0 8px var(--primary-neon-blue), 0 0 15px rgba(0, 255, 255, 0.6); /* Slightly stronger glow */
+    transform: translateY(1px); /* Push down slightly */
+}
+
+#upgradeButton:active:not(:disabled) {
+    background-color: #005cb8; /* Even darker blue */
+    box-shadow: 0 0 8px var(--primary-neon-blue), 0 0 16px var(--primary-neon-blue), 0 0 25px var(--primary-neon-blue);
+    transform: translateY(1px);
+}
+#customAnalysisText:focus,
+#licenseKeyInput:focus,
+#outputLanguageSelect:focus {
+    outline: none; /* Remove default outline */
+    border-color: var(--primary-neon-blue); /* Neon blue border */
+    box-shadow: 0 0 8px rgba(0, 255, 255, 0.7); /* Matching neon glow */
+}
+
+/* Keyframes for the glowing text effect */
+@keyframes neonTextGlow {
+    0% {
+        text-shadow: none;
+        opacity: 0.5;
+    }
+    50% {
+        text-shadow: 0 0 5px var(--primary-neon-blue), 0 0 10px rgba(0, 255, 255, 0.7);
+        opacity: 1;
+    }
+    100% {
+        text-shadow: none;
+        opacity: 0.5;
+    }
+}
+
+/* Style for individual glowing letters */
+.glowing-letter {
+    display: inline-block; /* Allows individual letters to be styled */
+    animation: neonTextGlow 1.5s infinite alternate ease-in-out;
 }
