@@ -1,0 +1,40 @@
+Noos.AI v2.5: Your Gemini 3.1 Powered Writing & Research Copilot 🚀
+
+Now with 10 FREE AI Actions Every Day! Summarize, Explain, Clone Your Voice & More!
+
+Supercharge your browsing with Noos.AI, the essential Chrome copilot now powered by Google's stable Gemini 3.1 architecture. We’ve completely revamped the experience to give you a generous free tier, stunning new visuals, and deep regional infrastructure for lightning-fast results globally. Stop getting bogged down by information overload—start understanding and writing the web with your powerful new AI companion.
+
+✨ NEW in v2.5: The "Intelligence & Isolation" Update
+• Stable Gemini 3.1 Migration: We've upgraded to the latest Gemini 3.1 models, offering a massive leap in speed, reasoning, and accuracy.
+• Visual Isolation Shield: Noos.AI now looks perfect on every website. We've implemented a robust CSS shield to prevent dark text on Facebook or "blocky" fonts on tech blogs from interfering with your reading experience.
+• Global Performance: New regional backend deployments in the US and Europe mean lower latency and near-instant responses no matter where you are.
+
+✨ Core Features (v2.4 legacy):
+• True Persona Cloning (Train Your Voice): Teach NoosAI to write exactly like you! Paste samples of your writing, and the AI will adopt your unique tone, style, and vocabulary for all "Rewrite" and "Reply" actions.
+• Ghost Input & Deep Integration: AI isn't just in a popup anymore. Right-click any text you've typed to "Rewrite & Improve"—NoosAI will polish your writing and replace it in-place instantly.
+• Premium UI & Markdown Rendering: Experience the most beautiful AI interface in the store. Our "Context-First" panel features fluid animations, a glassmorphic design, and full Markdown support for rich, structured reading.
+• Notion & Share Integration: Seamlessly send your AI insights to Notion, draft them in an email, or export them to ChatGPT/Claude/Gemini with a single click.
+
+✅ One Extension, Four Superpowers:
+Noos.AI replaces four separate tools, saving you money and tab-space:
+1. AI Researcher: Like a lite version of Perplexity, our "AI Search" synthesizes the web into instant answers with citations.
+2. Writing Assistant: Like Grammarly or Wordtune, but with the ability to clone your specific voice.
+3. Summarizer & Translator: Condense long articles and translate into 30+ languages with unmatched accuracy.
+4. Sentiment Analyst: Go deep into emotions, identifying the key drivers and psychological tone behind any message.
+
+🧠 All Features, Included in the Free Tier:
+• Explain This: Get clear explanations of complex jargon or technical docs.
+• Simplify This: Turn dense academic language into easy-to-read text.
+• AI Search Selection: Instant research assistant for any highlighted text.
+• Key Topic Extraction: Identify core themes and keywords instantly.
+• In-Panel History: Navigate between recent results without losing your flow.
+
+🏆 Unlock Unlimited Power with Premium
+Love the 10 daily actions? Go unlimited for just €4.99/month.
+• Unlimited Usage: No daily caps on any feature.
+• Priority Processing: Get your results with ultra-low latency.
+• Advanced Logic: Access higher-level reasoning for complex research.
+
+Install Noos.AI today and transform your browsing from passive reading into active understanding!
+
+Privacy First: Your data is processed securely and is never stored after processing. We respect your digital workspace.

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Noos.AI Options</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+
+<body>
+  <h1>Noos.AI Options</h1>
+
+  <div class="option-group">
+    <h2>Animation Settings</h2>
+    <div class="settings-section" id="animationTogglesContainerOptions">
+      <div class="toggle-container animation-toggle">
+        <span class="toggle-label-small">Negative Shake Effect</span>
+        <label class="switch small-switch">
+          <input type="checkbox" id="enableNegativeAnimationOptions">
+          <span class="slider round"></span>
+        </label>
+      </div>
+      <div class="toggle-container animation-toggle">
+        <span class="toggle-label-small">Positive Confetti Effect</span>
+        <label class="switch small-switch">
+          <input type="checkbox" id="enablePositiveAnimationOptions">
+          <span class="slider round"></span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- [NEW] NOTION INTEGRATION SECTION -->
+  <div class="option-group">
+    <h2>Integrations</h2>
+    <p class="note">
+      Find your Page ID (the long string in your Notion URL) and get your "Internal Integration Token" from <a
+        href="https://www.notion.so/my-integrations" target="_blank">notion.so/my-integrations</a>.
+    </p>
+
+    <label for="notionApiKey">Notion API Key (Internal Token)</label>
+    <input type="password" id="notionApiKey" placeholder="Starts with 'secret_...'">
+
+    <label for="notionPageId">Notion Page ID (to add content to)</label>
+    <input type="text" id="notionPageId" placeholder="e.g., 8a9b4c7d2e1f4a9b8c7d6e5f4a3b2c1d">
+  </div>
+  <!-- [END NEW] -->
+
+  <!-- [NEW] CUSTOM PERSONA MANAGER -->
+  <div class="option-group">
+    <h2>My Personas</h2>
+    <p class="note">
+      Create custom personas to tailor the AI's responses to your specific needs.
+    </p>
+    <div id="customPersonasContainer">
+      <!-- Custom personas will be dynamically added here -->
+    </div>
+    <div id="addPersonaForm">
+      <h3>Add New Persona</h3>
+      <label for="newPersonaName">Persona Name</label>
+      <input type="text" id="newPersonaName" placeholder="e.g., Concise Marketer">
+      <label for="newPersonaPrompt">Persona Instructions</label>
+      <textarea id="newPersonaPrompt"
+        placeholder="e.g., You are an expert Marketer. Focus on value propositions..."></textarea>
+      <button id="addPersonaButton">Add Persona</button>
+    </div>
+  </div>
+  <!-- [END NEW] -->
+
+  <!-- [NEW] Train Your Voice Section -->
+  <div class="option-group">
+    <h2>Train Your Voice</h2>
+    <p class="note">
+      Teach NoosAI to write exactly like you. Paste examples of your writing below.
+    </p>
+
+    <label for="voiceSample1">Sample 1 (e.g., an email you sent):</label>
+    <textarea id="voiceSample1" rows="3" placeholder="Paste a sample here..."></textarea>
+
+    <label for="voiceSample2">Sample 2 (e.g., a slack message):</label>
+    <textarea id="voiceSample2" rows="3" placeholder="Paste another sample..."></textarea>
+
+    <label for="voiceSample3">Sample 3 (e.g., a social post):</label>
+    <textarea id="voiceSample3" rows="3" placeholder="Paste one more sample..."></textarea>
+
+    <button id="analyzeVoiceButton">Analyze & Save My Voice</button>
+
+    <div id="voiceAnalysisResult" class="hidden">
+      <h3>Your Detected Style:</h3>
+      <div id="voiceStyleContainer">
+        <p id="detectedStyleText">Analysis pending...</p>
+        <textarea id="detectedStyleEdit" class="hidden" rows="4" style="width: 100%; margin-bottom: 10px;"></textarea>
+      </div>
+      <div class="voice-controls" style="margin-top: 10px; display: flex; gap: 10px;">
+        <button id="editVoiceButton" class="small-button">Edit</button>
+        <button id="saveVoiceEditButton" class="small-button hidden">Save</button>
+        <button id="cancelVoiceEditButton" class="small-button hidden">Cancel</button>
+        <button id="removeVoiceButton" class="small-button danger">Remove Style</button>
+      </div>
+    </div>
+  </div>
+
+  <button id="saveOptionsButton">Save Settings</button>
+
+  <div id="status"></div>
+
+  <script src="options.js"></script>
+</body>
+
+</html>
