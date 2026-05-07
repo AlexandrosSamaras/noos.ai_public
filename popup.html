@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>NoosAI Popup</title>
+  <link rel="stylesheet" href="popup.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+
+<body class="nebula-glass">
+  <!-- Neon Energy Line -->
+  <div class="neon-energy-trace"></div>
+  
+  <div class="popup-container">
+    <!-- Premium Header with Master Toggle -->
+    <header class="popup-header">
+      <div class="brand">
+        <img src="icons/icon48.png" alt="NoosAI" id="popupLogo">
+        <div class="brand-text">
+          <h1 id="popupTitle">Noos.AI</h1>
+          <div id="premiumStatusTopBar" class="badge">Premium</div>
+        </div>
+      </div>
+      
+      <div class="header-controls">
+        <label class="switch">
+          <input type="checkbox" id="toggleSwitch" checked>
+          <span class="slider round"></span>
+        </label>
+      </div>
+    </header>
+
+    <!-- [NEW] Top Revenue Section (High Conversion) -->
+    <div class="section revenue-section" id="revenueSection">
+      <button id="upgradeButton" class="button-upgrade">Upgrade to Premium</button>
+      
+      <div id="licenseSection" class="license-area-top">
+        <input type="text" id="licenseKeyInput" placeholder="Enter License Key">
+        <button id="verifyLicenseButton" class="button-mini">Verify</button>
+      </div>
+      <div id="licenseStatus" class="status-message"></div>
+    </div>
+
+    <!-- Core Action Section -->
+    <div class="section main-action-section">
+      <button id="summarizePageButton" class="button button-primary">Summarize Current Page</button>
+    </div>
+
+    <!-- Analysis Section -->
+    <div class="section custom-text-section">
+      <h3 class="section-title">AI Analysis</h3>
+      <textarea id="customAnalysisText" placeholder="Paste text to analyze..."></textarea>
+      
+      <div class="settings-grid">
+        <div class="setting-item">
+          <label for="outputLanguageSelect">Output Language</label>
+          <select id="outputLanguageSelect">
+            <option value="auto">Auto-Detect</option>
+            <option value="en">English</option>
+            <option value="el">Greek</option>
+            <option value="fr">French</option>
+            <option value="de">German</option>
+            <option value="es">Spanish</option>
+            <option value="it">Italian</option>
+            <option value="pt">Portuguese</option>
+            <option value="ru">Russian</option>
+            <option value="zh">Chinese</option>
+            <option value="ja">Japanese</option>
+          </select>
+        </div>
+        <div class="setting-item">
+          <label for="personaSelect">Analyze As</label>
+          <select id="personaSelect">
+            <option value="default">Default AI</option>
+            <option value="sales_rep">Sales Expert</option>
+            <option value="marketer">Marketer</option>
+            <option value="student">Academic</option>
+            <option value="developer">Developer</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="action-grid">
+        <button id="analyzeSearchCustom" class="button">AI Search</button>
+        <button id="analyzeExplainCustom" class="button">Explain</button>
+        <button id="analyzeSimplifyCustom" class="button">Simplify</button>
+        <button id="analyzeSentimentCustom" class="button">Sentiment</button>
+        <button id="analyzeSummaryCustom" class="button">Summary</button>
+        <button id="analyzeKeywordsCustom" class="button">Keywords</button>
+        <button id="analyzeTranslateCustom" class="button">Translate</button>
+      </div>
+      <p id="customAnalysisStatus" class="status-message"></p>
+    </div>
+
+    <!-- Minimalist Footer -->
+    <footer class="popup-footer">
+      <div class="footer-pills">
+        <a href="https://billing.stripe.com/p/login/7sIdUUabQ2n79y0cMM" target="_blank" class="glass-pill-btn">Manage</a>
+        <a href="https://noosai.co.uk/#feedback-support" target="_blank" class="glass-pill-btn">Feedback</a>
+        <a href="https://noosai.co.uk/privacy" target="_blank" class="glass-pill-btn">Privacy</a>
+      </div>
+
+      <div class="footer-meta">
+        <div id="usageCounter" class="usage-text">Usage: 0/10</div>
+        <div id="extensionVersion">v2.5.1 Premium</div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
