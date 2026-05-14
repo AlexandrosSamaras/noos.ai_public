@@ -19,7 +19,7 @@ const DISABLED_DOMAINS = ["buy.stripe.com"];
 console.log("NoosAI Content Script: Initializing (v5.0)...");
 
 // --- Initialization ---
-function initializeExtensionState() { console.log("CS: Init state..."); chrome.storage.sync.get(['extensionEnabled', 'enableNegativeAnimation', 'enablePositiveAnimation'], (data) => { if (chrome.runtime.lastError) { console.error("CS: Error loading state", chrome.runtime.lastError); } else { window.extensionEnabled = data.extensionEnabled !== !1; allowNegativeAnimation = data.enableNegativeAnimation !== !1; allowPositiveAnimation = data.enablePositiveAnimation !== !1; console.log("CS: State loaded."); } console.log("CS: Current state:", { enabled: window.extensionEnabled, negAnim: allowNegativeAnimation, posAnim: allowPositiveAnimation }); }); }
+function initializeExtensionState() { console.log("CS: Init state..."); chrome.storage.sync.get(['extensionEnabled', 'enableNegativeAnimation', 'enablePositiveAnimation', 'enableMagicPointer'], (data) => { if (chrome.runtime.lastError) { console.error("CS: Error loading state", chrome.runtime.lastError); } else { window.extensionEnabled = data.extensionEnabled !== !1; window.magicPointerEnabled = data.enableMagicPointer !== !1; allowNegativeAnimation = data.enableNegativeAnimation !== !1; allowPositiveAnimation = data.enablePositiveAnimation !== !1; console.log("CS: State loaded."); } }); }
 
 function checkExtentionRunAnalysis() { const host = window.location.hostname; if (DISABLED_DOMAINS.includes(host)) return false; return window.extensionEnabled; }
 
@@ -139,8 +139,7 @@ function createResultPanel() {
         followUpInput.placeholder = 'Ask a follow-up question...';
         Object.assign(followUpInput.style, {
             width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)',
-            background: 'rgba(0,0,0,0.3)', color: 'white', fontSize: '13px', outline: 'none',
-            boxSizing: 'border-box' // Fix overflow
+            fontSize: '13px', outline: 'none', boxSizing: 'border-box'
         });
 
         const followUpButton = document.createElement('button');
@@ -372,8 +371,15 @@ function showResultPanel(titleText, resultData, resultType = 'info', isError = f
     if (!contentArea || !panelTitle || !copyButton || !summarizeResultButton || !translateSummaryContainer || !translateSummaryButton || !translateSearchResultButton || !translateSearchResultContainer || !shareButton || !followupContainer || !followupInput) { console.error("CS: Panel sub-elements not found for showResultPanel."); return; }
 
 
-    panelTitle.textContent = titleText;
-    panelTitle.style.color = '#e7f1fd !important';
+    if (resultType === 'sentiment') {
+        panelTitle.style.color = getSentimentColor(resultData.sentiment);
+        panelTitle.style.textShadow = `0 0 10px ${getSentimentColor(resultData.sentiment)}`;
+    } else if (resultType === 'search' || resultType === 'magicPointer') {
+        panelTitle.style.color = '#00ffff'; // Cyan for better readability
+        panelTitle.style.textShadow = `0 0 10px rgba(0, 255, 255, 0.5)`;
+    } else {
+        panelTitle.style.color = '#e7f1fd !important';
+    }
 
     let originalSummaryTextForTranslation = "";
     let originalSearchResultTextForTranslation = "";
@@ -384,8 +390,10 @@ function showResultPanel(titleText, resultData, resultType = 'info', isError = f
     try {
         if (resultType === 'processing') {
             formattedContent = `
-                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px 0;">
-                    <p style="color: #00ffff; font-size: 14px; letter-spacing: 1px; font-weight: 500; text-transform: uppercase;">Processing...</p>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; text-align: center;">
+                    <div class="noosai-loading-spinner" style="width: 40px; height: 40px; border: 3px solid rgba(0, 255, 255, 0.1); border-top: 3px solid #00ffff; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;"></div>
+                    <p style="color: #00ffff; font-size: 13px; letter-spacing: 1.5px; font-weight: 600; text-transform: uppercase; margin: 0 0 10px 0; font-family: 'Outfit', sans-serif;">AI is Thinking</p>
+                    <p style="color: #b5c8e4; font-size: 14px; line-height: 1.4; margin: 0; font-family: 'Outfit', sans-serif; opacity: 0.8;">${escapeHTML(resultData?.message || 'Analyzing pixels and context...')}</p>
                 </div>`;
             plainTextForCopy = resultData?.message || 'Working...';
         } else if (resultType === 'error') {
@@ -992,6 +1000,7 @@ try {
 
             if (request.message === "updateState") { window.extensionEnabled = request.enabled; if (!request.enabled) hideResultPanel(); sendResponse({ received: true }); return true; }
             else if (request.message === "updateAnimationSetting") { if (request.setting === "negative") allowNegativeAnimation = request.enabled; else if (request.setting === "positive") allowPositiveAnimation = request.enabled; sendResponse({ received: true }); return true; }
+            else if (request.message === "updateMagicPointerSetting") { window.magicPointerEnabled = request.enabled; sendResponse({ received: true }); return true; }
             else if (request.action === "hideTooltip") { hideResultPanel(); }
             else if (request.action === "replaceSelection") { // [NEW] Handle replacement
                 replaceSelectedText(request.text);
@@ -1404,6 +1413,321 @@ function checkAndPerformLLMPaste() {
         }
     });
 }
+
+// --- [NEW] Magic Pointer Feature ---
+let magicPointerThinking = false;
+let isAltPressed = false;
+let isDragging = false;
+let startX, startY;
+let selectionRect = null;
+let hoverHighlight = null;
+let suppressNextClick = false;
+
+function setupMagicPointerV2() {
+    if (document.getElementById('noosai-selection-rect')) return;
+    selectionRect = document.createElement('div');
+    selectionRect.id = 'noosai-selection-rect';
+    document.body.appendChild(selectionRect);
+
+    hoverHighlight = document.createElement('div');
+    hoverHighlight.id = 'noosai-hover-highlight';
+    document.body.appendChild(hoverHighlight);
+}
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Alt' && window.extensionEnabled && window.magicPointerEnabled !== false) {
+        isAltPressed = true;
+        setupMagicPointerV2();
+        document.body.classList.add('noosai-magic-pointer-ready');
+        hoverHighlight.style.display = 'block';
+    }
+});
+
+document.addEventListener('keyup', (e) => {
+    if (e.key === 'Alt') {
+        isAltPressed = false;
+        document.body.classList.remove('noosai-magic-pointer-ready');
+        if (hoverHighlight) hoverHighlight.style.display = 'none';
+        if (isDragging) cancelDrag();
+    }
+});
+
+document.addEventListener('mousemove', (e) => {
+    if (isAltPressed && window.extensionEnabled && window.magicPointerEnabled !== false) {
+        if (isDragging) {
+            updateDrag(e.clientX, e.clientY);
+        } else if (hoverHighlight) {
+            updateHoverHighlight(e.clientX, e.clientY);
+        }
+    }
+});
+
+function updateHoverHighlight(x, y) {
+    hoverHighlight.style.display = 'none';
+    const el = document.elementFromPoint(x, y);
+    hoverHighlight.style.display = 'block';
+    
+    if (el && el !== document.body && el !== document.documentElement && !el.id?.startsWith('noosai-')) {
+        const rect = el.getBoundingClientRect();
+        hoverHighlight.style.width = rect.width + 'px';
+        hoverHighlight.style.height = rect.height + 'px';
+        hoverHighlight.style.left = rect.left + 'px';
+        hoverHighlight.style.top = rect.top + 'px';
+        hoverHighlight.style.opacity = '1';
+    } else {
+        hoverHighlight.style.opacity = '0';
+    }
+}
+
+document.addEventListener('mousedown', (e) => {
+    if (e.altKey && window.extensionEnabled && window.magicPointerEnabled !== false && !magicPointerThinking) {
+        e.preventDefault();
+        e.stopPropagation();
+        setupMagicPointerV2();
+        isDragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        selectionRect.style.left = startX + 'px';
+        selectionRect.style.top = startY + 'px';
+        selectionRect.style.width = '0px';
+        selectionRect.style.height = '0px';
+        selectionRect.style.display = 'block';
+        hoverHighlight.style.display = 'none';
+    }
+}, true);
+
+document.addEventListener('mouseup', (e) => {
+    if (isDragging) {
+        e.preventDefault();
+        e.stopPropagation();
+        suppressNextClick = true;
+        setTimeout(() => suppressNextClick = false, 100);
+
+        isDragging = false;
+        selectionRect.style.display = 'none';
+        
+        const endX = e.clientX;
+        const endY = e.clientY;
+        const width = Math.abs(endX - startX);
+        const height = Math.abs(endY - startY);
+        
+        if (width > 5 || height > 5) {
+            const rect = { x: Math.min(startX, endX), y: Math.min(startY, endY), width, height };
+            handleMagicPointerAction(rect.x + width/2, rect.y + height/2, rect);
+        } else {
+            handleMagicPointerAction(startX, startY, null);
+        }
+    }
+}, true);
+
+document.addEventListener('click', (e) => {
+    if (suppressNextClick || (e.altKey && window.extensionEnabled && window.magicPointerEnabled !== false)) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+}, true);
+
+function updateDrag(currentX, currentY) {
+    const x = Math.min(startX, currentX);
+    const y = Math.min(startY, currentY);
+    const w = Math.abs(startX - currentX);
+    const h = Math.abs(startY - currentY);
+    selectionRect.style.left = x + 'px';
+    selectionRect.style.top = y + 'px';
+    selectionRect.style.width = w + 'px';
+    selectionRect.style.height = h + 'px';
+}
+
+function cancelDrag() {
+    isDragging = false;
+    if (selectionRect) selectionRect.style.display = 'none';
+}
+
+function handleMagicPointerAction(x, y, customRect) {
+    document.body.classList.remove('noosai-magic-pointer-ready');
+    const domContext = getDOMContextAround(x, y);
+    
+    showMagicInputBox(x, y, (customPrompt) => {
+        magicPointerThinking = true;
+        document.body.classList.add('noosai-magic-pointer-loading');
+        
+        const isYouTube = window.location.href.includes('youtube.com/watch');
+        const loadingMsg = isYouTube ? "Extracting video transcript & analyzing frames..." : "Gathering visual data & identifying elements...";
+        showResultPanel("Analyzing Context...", { message: loadingMsg }, 'processing', false);
+        
+        // Visual Pulse
+        const pulse = document.createElement('div');
+        pulse.className = 'noosai-scan-pulse';
+        pulse.style.left = x + 'px';
+        pulse.style.top = y + 'px';
+        document.body.appendChild(pulse);
+        setTimeout(() => pulse.remove(), 800);
+
+        chrome.runtime.sendMessage({
+            action: "magicPointerCapture",
+            coords: { x, y },
+            customRect: customRect,
+            viewport: { width: window.innerWidth, height: window.innerHeight, devicePixelRatio: window.devicePixelRatio },
+            context: domContext,
+            customPrompt: customPrompt || ""
+        });
+    });
+}
+
+function showMagicInputBox(x, y, onComplete) {
+    let container = document.getElementById('noosai-magic-input-container');
+    if (container) container.remove();
+    
+    container = document.createElement('div');
+    container.id = 'noosai-magic-input-container';
+    
+    let px = x + 15;
+    let py = y + 15;
+    if (px + 280 > window.innerWidth) px = x - 295;
+    if (py + 60 > window.innerHeight) py = y - 75;
+    
+    container.style.left = px + 'px';
+    container.style.top = py + 'px';
+    
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = 'Ask about this... (Optional)';
+    
+    const sendBtn = document.createElement('button');
+    sendBtn.innerHTML = '&#10148;';
+    
+    container.appendChild(input);
+    container.appendChild(sendBtn);
+    document.body.appendChild(container);
+    
+    input.focus();
+    
+    const submit = () => {
+        const val = input.value.trim();
+        container.remove();
+        onComplete(val);
+    };
+    
+    const cancel = (e) => {
+        if (e.key === 'Escape' || (e.type === 'mousedown' && !container.contains(e.target))) {
+            container.remove();
+        }
+    };
+    
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') submit();
+        if (e.key === 'Escape') cancel(e);
+    });
+    sendBtn.addEventListener('click', submit);
+    
+    setTimeout(() => {
+        document.addEventListener('mousedown', cancel, {once: true});
+    }, 100);
+}
+
+function getDOMContextAround(x, y) {
+    const el = document.elementFromPoint(x, y);
+    if (!el) return "No element found at pointer.";
+    let tree = [];
+    let curr = el;
+    while(curr && curr !== document.body && tree.length < 5) {
+        let info = `<${curr.tagName.toLowerCase()}`;
+        if (curr.id) info += ` id="${curr.id}"`;
+        if (curr.className && typeof curr.className === 'string') info += ` class="${curr.className}"`;
+        if (curr.alt) info += ` alt="${curr.alt}"`;
+        if (curr.ariaLabel) info += ` aria-label="${curr.ariaLabel}"`;
+        if (curr.title) info += ` title="${curr.title}"`;
+        info += `>`;
+        let text = Array.from(curr.childNodes)
+            .filter(n => n.nodeType === Node.TEXT_NODE)
+            .map(n => n.textContent.trim())
+            .filter(t => t).join(' ');
+        if (text) info += ` ${text.substring(0, 100)}...`;
+        tree.push(info);
+        curr = curr.parentElement;
+    }
+    return tree.reverse().join('\n  └─ ');
+}
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === "magicPointerCaptureData") {
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            let sx, sy, sw, sh, dx, dy, dw, dh;
+            const VISION_SIZE = 1024;
+            const dpr = request.viewport?.devicePixelRatio || window.devicePixelRatio || 1;
+
+            if (request.customRect) {
+                // SELECTION CROP
+                sx = request.customRect.x * dpr;
+                sy = request.customRect.y * dpr;
+                sw = request.customRect.width * dpr;
+                sh = request.customRect.height * dpr;
+                
+                const aspect = sw / sh;
+                if (sw > sh) {
+                    dw = Math.min(sw, VISION_SIZE);
+                    dh = dw / aspect;
+                } else {
+                    dh = Math.min(sh, VISION_SIZE);
+                    dw = dh * aspect;
+                }
+            } else {
+                // POINT CROP (DEFAULT)
+                sx = Math.max(0, request.coords.x * dpr - VISION_SIZE/2);
+                sy = Math.max(0, request.coords.y * dpr - VISION_SIZE/2);
+                sw = VISION_SIZE;
+                sh = VISION_SIZE;
+                dw = VISION_SIZE;
+                dh = VISION_SIZE;
+            }
+
+            canvas.width = dw;
+            canvas.height = dh;
+            ctx.drawImage(img, sx, sy, sw, sh, 0, 0, dw, dh);
+            
+            if (!request.customRect) {
+                // Crosshair for point clicks
+                ctx.strokeStyle = '#00ffff';
+                ctx.lineWidth = 4;
+                const cx = dw/2;
+                const cy = dh/2;
+                ctx.beginPath();
+                ctx.moveTo(cx - 30, cy); ctx.lineTo(cx + 30, cy);
+                ctx.moveTo(cx, cy - 30); ctx.lineTo(cx, cy + 30);
+                ctx.stroke();
+            }
+
+            const base64Data = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+            chrome.runtime.sendMessage({
+                action: "magicPointerPayload",
+                coords: request.coords,
+                context: request.context,
+                customPrompt: request.customPrompt,
+                imageData: base64Data,
+                isSelection: !!request.customRect
+            });
+        };
+        img.src = request.dataUrl;
+    }
+    
+    if (request.action === "magicPointerResponse") {
+        magicPointerThinking = false;
+        document.body.classList.remove('noosai-magic-pointer-loading');
+        
+        if (request.error) {
+            showResultPanel("Magic Pointer Error", { error: request.error }, 'error', true);
+            return;
+        }
+        
+        // Use 'search' result type as it presents text well
+        showResultPanel("Magic Pointer Context", { searchResult: request.result.summary || request.result.replyText || request.result.raw || JSON.stringify(request.result) }, 'search', false);
+    }
+});
+// --- [END NEW] ---
 
 // --- Initialization Call ---
 initializeExtensionState();

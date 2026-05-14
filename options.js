@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- Get Elements ---
   const negAnimCheckbox = document.getElementById('enableNegativeAnimationOptions');
   const posAnimCheckbox = document.getElementById('enablePositiveAnimationOptions');
+  const magicPointerCheckbox = document.getElementById('enableMagicPointerOptions');
   const notionApiKeyInput = document.getElementById('notionApiKey');
   const notionPageIdInput = document.getElementById('notionPageId');
   const saveButton = document.getElementById('saveOptionsButton');
@@ -23,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function loadSettings() {
     // Load all settings from storage
     chrome.storage.sync.get(
-      ['enableNegativeAnimation', 'enablePositiveAnimation', 'notionApiKey', 'notionPageId', 'customPersonas'],
+      ['enableNegativeAnimation', 'enablePositiveAnimation', 'enableMagicPointer', 'notionApiKey', 'notionPageId', 'customPersonas'],
       (data) => {
         if (chrome.runtime.lastError) {
           console.error("Options: Error loading settings:", chrome.runtime.lastError);
@@ -37,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Set checkbox states (default to true if undefined)
         if (negAnimCheckbox) negAnimCheckbox.checked = data.enableNegativeAnimation !== false;
         if (posAnimCheckbox) posAnimCheckbox.checked = data.enablePositiveAnimation !== false;
+        if (magicPointerCheckbox) magicPointerCheckbox.checked = data.enableMagicPointer !== false;
 
         // Set Notion fields (default to empty string)
         if (notionApiKeyInput) notionApiKeyInput.value = data.notionApiKey || '';
@@ -235,6 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const settingsToSave = {
       enableNegativeAnimation: negAnimCheckbox ? negAnimCheckbox.checked : true,
       enablePositiveAnimation: posAnimCheckbox ? posAnimCheckbox.checked : true,
+      enableMagicPointer: magicPointerCheckbox ? magicPointerCheckbox.checked : true,
       notionApiKey: notionApiKeyInput ? notionApiKeyInput.value.trim() : '',
       notionPageId: notionPageIdInput ? notionPageIdInput.value.trim() : '',
       userPersona: document.getElementById('userPersona') ? document.getElementById('userPersona').value : 'default'
@@ -261,6 +264,10 @@ document.addEventListener('DOMContentLoaded', () => {
           message: "updateAnimationSetting",
           setting: "positive",
           enabled: settingsToSave.enablePositiveAnimation
+        });
+        chrome.runtime.sendMessage({
+          message: "updateMagicPointerSetting",
+          enabled: settingsToSave.enableMagicPointer
         });
       }
 

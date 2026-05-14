@@ -12,15 +12,15 @@
 
     /* Glassmorphism Core: MacOS 26.2 "Nebula Glass" Style */
     background: 
-        linear-gradient(135deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0) 45%, rgba(255, 255, 255, 0) 100%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 45%, rgba(255, 255, 255, 0) 100%),
         radial-gradient(at 0% 0%, rgba(0, 255, 255, 0.1), transparent 50%),
         radial-gradient(at 100% 100%, rgba(192, 132, 252, 0.15), transparent 50%),
-        rgba(10, 15, 30, 0.5) !important;
-    backdrop-filter: blur(14px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(14px) saturate(180%) !important;
+        rgba(15, 20, 35, 0.5) !important;
+    backdrop-filter: blur(18px) saturate(150%) !important;
+    -webkit-backdrop-filter: blur(18px) saturate(150%) !important;
 
     /* Border & Refractive Rim */
-    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
     
     /* Animation: Permanent Ambient Breathing (Intensified) */
     animation: 
@@ -40,6 +40,7 @@
 
     display: flex;
     flex-direction: column;
+    overflow: hidden !important;
 }
 
 @keyframes ambientBreathing {
@@ -273,25 +274,49 @@
 
 /* Select Dropdowns */
 .noosai-select {
-    width: 100%;
-    padding: 8px 10px;
-    border-radius: 8px;
-    background: rgba(20, 20, 30, 0.6) url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23b5c8e4%22%20d%3D%22M287%2069.4a17.6%2017.6%0A%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E') no-repeat right 10px center;
-    background-size: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #e7f1fd;
-    font-size: 13px;
-    font-family: inherit;
-    appearance: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
+    width: 100% !important;
+    padding: 8px 10px !important;
+    border-radius: 8px !important;
+    background: rgba(20, 20, 30, 0.6) url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23b5c8e4%22%20d%3D%22M287%2069.4a17.6%2017.6%0A%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E') no-repeat right 10px center !important;
+    background-size: 10px !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    color: #e7f1fd !important;
+    font-size: 13px !important;
+    font-family: inherit !important;
+    appearance: none !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
 }
 
 .noosai-select:focus {
-    outline: none;
-    border-color: #00ffff;
-    box-shadow: 0 0 8px rgba(0, 255, 255, 0.2);
-    background-color: rgba(20, 20, 30, 0.8);
+    outline: none !important;
+    border-color: #00ffff !important;
+    box-shadow: 0 0 8px rgba(0, 255, 255, 0.2) !important;
+    background-color: rgba(20, 20, 30, 0.8) !important;
+}
+
+#noosai-followup-input {
+    background: rgba(20, 20, 30, 0.6) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 8px !important;
+    font-family: inherit !important;
+}
+#noosai-followup-input:focus {
+    border-color: #00ffff !important;
+    box-shadow: 0 0 8px rgba(0, 255, 255, 0.2) !important;
+    outline: none !important;
+}
+
+#noosai-followup-button {
+    background: rgba(0, 255, 255, 0.1) !important;
+    border: 1px solid rgba(0, 255, 255, 0.3) !important;
+    color: #00ffff !important;
+    border-radius: 16px !important;
+}
+#noosai-followup-button:hover {
+    background: rgba(0, 255, 255, 0.2) !important;
+    color: #ffffff !important;
 }
 
 .noosai-select option {
@@ -447,16 +472,181 @@
 
 /* --- [CLEANUP] All Magical Loaders/Particles Purged --- */
 #noosai-result-panel.is-processing {
-    box-shadow: 0 0 25px rgba(0, 255, 255, 0.4) !important;
-    border-color: rgba(0, 255, 255, 0.8) !important;
+    box-shadow: 0 0 35px rgba(0, 255, 255, 0.4) !important;
+    border-color: rgba(0, 255, 255, 0.6) !important;
+}
+
+#noosai-result-panel.is-processing::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #00ffff, transparent);
+    background-size: 200% 100%;
+    animation: magicScan 1.5s linear infinite;
+    z-index: 100;
+}
+
+@keyframes magicScan {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
 }
 
 .shake-negative {
     animation: shake 0.5s;
 }
 
-@keyframes shake {
-    0%{transform:translateX(0)} 25%{transform:translateX(-5px)} 50%{transform:translateX(5px)} 75%{transform:translateX(-5px)} 100%{transform:translateX(0)}
 }
 
-
+/* --- [NEW] Magic Pointer UI Feedback --- */
+body.noosai-magic-pointer-ready * {
+    cursor: crosshair !important;
+}
+
+body.noosai-magic-pointer-loading * {
+    cursor: wait !important;
+}
+
+body.noosai-magic-pointer-ready::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    box-shadow: inset 0 0 50px rgba(0, 255, 255, 0.15);
+    pointer-events: none;
+    z-index: 2147483647;
+    animation: pointerPulse 2s infinite alternate;
+}
+
+body.noosai-magic-pointer-loading::after {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    box-shadow: inset 0 0 50px rgba(255, 0, 255, 0.25);
+    pointer-events: none;
+    z-index: 2147483647;
+    animation: pointerPulse 1s infinite alternate;
+}
+
+@keyframes pointerPulse {
+    from { box-shadow: inset 0 0 30px rgba(0, 255, 255, 0.1); }
+    to { box-shadow: inset 0 0 60px rgba(0, 255, 255, 0.3); }
+}
+
+/* --- [NEW] Contextual Ask Box --- */
+#noosai-magic-input-container {
+    position: fixed;
+    z-index: 2147483647;
+    background: 
+        linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 45%),
+        rgba(10, 15, 30, 0.65) !important;
+    backdrop-filter: blur(16px) saturate(200%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(200%) !important;
+    border: 1px solid rgba(0, 255, 255, 0.5) !important;
+    border-radius: 20px;
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 15px rgba(0,255,255,0.2);
+    animation: shareMenuPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    font-family: 'Outfit', sans-serif;
+}
+
+#noosai-magic-input-container input {
+    background: transparent !important;
+    border: none !important;
+    color: white !important;
+    font-size: 14px !important;
+    outline: none !important;
+    width: 240px;
+    font-family: inherit;
+}
+
+#noosai-magic-input-container input::placeholder {
+    color: rgba(255,255,255,0.5);
+}
+
+#noosai-magic-input-container button {
+    background: rgba(0, 255, 255, 0.2) !important;
+    border: 1px solid rgba(0, 255, 255, 0.4) !important;
+    color: white !important;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    margin-left: 8px;
+    transition: all 0.2s ease;
+}
+
+#noosai-magic-input-container button:hover {
+    background: rgba(0, 255, 255, 0.4) !important;
+    transform: scale(1.1);
+}
+
+/* --- [NEW] Magic Pointer v2 Enhancements --- */
+
+/* Intelligent Hover Highlight */
+#noosai-hover-highlight {
+    position: fixed;
+    pointer-events: none;
+    z-index: 2147483646;
+    border: 2px solid rgba(0, 255, 255, 0.4);
+    border-radius: 8px;
+    background: rgba(0, 255, 255, 0.05);
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.2), inset 0 0 10px rgba(0, 255, 255, 0.1);
+    transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+    display: none;
+}
+
+/* Selection Rectangle (Drag) */
+#noosai-selection-rect {
+    position: fixed;
+    pointer-events: none;
+    z-index: 2147483647;
+    border: 1px solid #00ffff;
+    background: rgba(0, 255, 255, 0.1);
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+    display: none;
+}
+
+/* Scanning Pulse Animation */
+.noosai-scan-pulse {
+    position: fixed;
+    pointer-events: none;
+    z-index: 2147483647;
+    border: 2px solid #00ffff;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    animation: scanPulseExpand 0.8s ease-out forwards;
+}
+
+@keyframes scanPulseExpand {
+    0% { width: 0; height: 0; opacity: 1; border-width: 10px; }
+    100% { width: 400px; height: 400px; opacity: 0; border-width: 1px; }
+}
+
+/* Scanning Line Animation */
+.noosai-scan-line {
+    position: fixed;
+    pointer-events: none;
+    z-index: 2147483647;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #00ffff, transparent);
+    box-shadow: 0 0 15px #00ffff;
+    width: 100%;
+    left: 0;
+    display: none;
+}
+
+@keyframes scanLineSweep {
+    0% { top: 0%; opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+}
+
+
+
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }

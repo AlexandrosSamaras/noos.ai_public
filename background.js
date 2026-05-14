@@ -1,7 +1,7 @@
 // background.js - v3.4 - Gemini 3.1 Migration & CSS Isolation Improvements
 
 // --- Constants ---
-const BACKEND_ANALYZE_URL = "https://sentiment-analyzer-service-872183226779.us-central1.run.app/analyze";
+const BACKEND_ANALYZE_URL = "http://localhost:8080/analyze"; // Temporarily pointing to local for testing
 const BACKEND_VERIFY_URL = "https://sentiment-analyzer-service-872183226779.us-central1.run.app/verify-license";
 const VERIFY_LICENSE_SECRET = "4TheFuture2030@";
 const NOTION_API_URL_BASE = "https://api.notion.com/v1/blocks/"; // [NEW]
@@ -621,8 +621,58 @@ chrome.runtime.onMessage.addListener(
             }
             return false;
         }
+        
+        else if (request.action === "magicPointerCapture") {
+            chrome.tabs.captureVisibleTab(null, { format: "png" }, (dataUrl) => {
+                if (chrome.runtime.lastError) {
+                    console.error("BG: Capture error:", chrome.runtime.lastError.message);
+                    chrome.tabs.sendMessage(sender.tab.id, { action: "magicPointerResponse", error: chrome.runtime.lastError.message });
+                    return;
+                }
+                chrome.tabs.sendMessage(sender.tab.id, { 
+                    action: "magicPointerCaptureData", 
+                    dataUrl: dataUrl,
+                    coords: request.coords,
+                    context: request.context,
+                    customRect: request.customRect,
+                    customPrompt: request.customPrompt
+                });
+            });
+            return true;
+        }
+        
+        else if (request.action === "magicPointerPayload") {
+            console.log("BG: Received magicPointerPayload, sending to backend...");
+            chrome.storage.sync.get(["isPremium", "licenseKey", "userId", "userPersona"], (settings) => {
+                const payload = {
+                    action: "magicPointer",
+                    text: `User clicked at X:${request.coords.x}, Y:${request.coords.y}. DOM Context:\n${request.context}`,
+                    imageData: request.imageData,
+                    persona: settings.userPersona || "default",
+                    licenseKey: settings.isPremium ? settings.licenseKey : null,
+                    userId: settings.userId,
+                    pageContext: { url: sender.tab?.url || "", title: sender.tab?.title || "" }
+                };
+                
+                fetch(BACKEND_ANALYZE_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                })
+                .then(res => res.json())
+                .then(data => {
+                    chrome.tabs.sendMessage(sender.tab.id, { action: "magicPointerResponse", result: data });
+                })
+                .catch(err => {
+                    console.error("BG: Magic Pointer Fetch Error:", err);
+                    chrome.tabs.sendMessage(sender.tab.id, { action: "magicPointerResponse", error: err.message });
+                });
+            });
+            return true;
+        }
 
         console.warn("BG: Runtime message type not handled:", request);
         return false;
+
     }
 );
