@@ -1,7 +1,7 @@
-// background.js - v3.4 - Gemini 3.1 Migration & CSS Isolation Improvements
+// background.js - v3.0 - Gemini 3.1 Migration & CSS Isolation Improvements
 
 // --- Constants ---
-const BACKEND_ANALYZE_URL = "http://localhost:8080/analyze"; // Temporarily pointing to local for testing
+const BACKEND_ANALYZE_URL = "https://sentiment-analyzer-service-872183226779.us-central1.run.app/analyze";
 const BACKEND_VERIFY_URL = "https://sentiment-analyzer-service-872183226779.us-central1.run.app/verify-license";
 const VERIFY_LICENSE_SECRET = "4TheFuture2030@";
 const NOTION_API_URL_BASE = "https://api.notion.com/v1/blocks/"; // [NEW]
