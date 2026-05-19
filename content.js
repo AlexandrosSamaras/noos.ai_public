@@ -317,6 +317,19 @@ function createResultPanel() {
 }
 
 
+// Helper function to map sentiment labels to colors
+function getSentimentColor(sentiment) {
+    if (!sentiment) return '#e7f1fd';
+    const s = sentiment.toLowerCase();
+    if (s.includes('positive') || s.includes('joy') || s.includes('happy') || s.includes('satisfied')) return '#4ade80';
+    if (s.includes('negative') || s.includes('angry') || s.includes('frustrat') || s.includes('hate')) return '#f87171';
+    if (s.includes('urgent') || s.includes('escalat') || s.includes('critical')) return '#fb923c';
+    if (s.includes('mixed') || s.includes('ambivalent')) return '#facc15';
+    if (s.includes('neutral') || s.includes('calm')) return '#38bdf8';
+    if (s.includes('sad') || s.includes('disappoint')) return '#a78bfa';
+    return '#e7f1fd'; // Default: light blue-white
+}
+
 // Helper function to safely escape HTML
 function escapeHTML(str) {
     if (typeof str !== 'string') return '';
@@ -372,13 +385,21 @@ function showResultPanel(titleText, resultData, resultType = 'info', isError = f
 
 
     if (resultType === 'sentiment') {
-        panelTitle.style.color = getSentimentColor(resultData.sentiment);
-        panelTitle.style.textShadow = `0 0 10px ${getSentimentColor(resultData.sentiment)}`;
+        const sentColor = getSentimentColor(resultData.sentiment);
+        // Override the CSS gradient text effect (background-clip + text-fill-color)
+        panelTitle.style.background = 'none';
+        panelTitle.style.webkitTextFillColor = sentColor;
+        panelTitle.style.filter = `drop-shadow(0 0 8px ${sentColor})`;
     } else if (resultType === 'search' || resultType === 'magicPointer') {
-        panelTitle.style.color = '#00ffff'; // Cyan for better readability
-        panelTitle.style.textShadow = `0 0 10px rgba(0, 255, 255, 0.5)`;
+        panelTitle.style.background = 'none';
+        panelTitle.style.webkitTextFillColor = '#00ffff';
+        panelTitle.style.filter = 'drop-shadow(0 0 8px rgba(0, 255, 255, 0.5))';
     } else {
-        panelTitle.style.color = '#e7f1fd !important';
+        // Reset to default gradient
+        panelTitle.style.background = 'linear-gradient(90deg, #60a5fa, #c084fc)';
+        panelTitle.style.webkitBackgroundClip = 'text';
+        panelTitle.style.webkitTextFillColor = 'transparent';
+        panelTitle.style.filter = 'drop-shadow(0 0 10px rgba(139, 92, 246, 0.6))';
     }
 
     let originalSummaryTextForTranslation = "";
