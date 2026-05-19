@@ -13,7 +13,7 @@
   ],
   "host_permissions": [
     "<all_urls>",
-    "https://sentiment-analyzer-service-872183226779.us-central1.run.app/",
+    "https://sentiment-analyzer-service-872183226779.us-central1.run.app/*",
     "https://api.notion.com/"
   ],
   "background": {
