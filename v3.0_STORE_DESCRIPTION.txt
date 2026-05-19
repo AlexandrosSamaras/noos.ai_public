@@ -1,0 +1,59 @@
+Noos.AI v3.0: Your Gemini 3.1 Powered Spatial AI, Research & Writing Copilot 🚀
+
+Now with 10 FREE AI Actions Every Day! Meet Magic Pointer v2, Custom Personas, and One-Click Notion Integration!
+
+Supercharge your browsing experience with Noos.AI v3.0, the ultimate AI browser copilot powered by Google's next-gen Gemini 3.1 architecture. We've taken your favorite browsing companion and added revolutionary "Spatial AI" capabilities, advanced personalization, and deep third-party workspace integrations. Get instant, high-quality research, write in your exact voice directly inside any web page, and capture screen sections with ease. Stop drowning in open tabs and information overload—start commanding the web with Noos.AI.
+
+✨ NEW in v3.0: The "Spatial & Synthesis" Update
+
+• Magic Pointer v2 (Spatial AI): Noos.AI can now see the web exactly as you do. 
+  - Hover Mode: Hold 'Alt' to highlight page elements with an interactive cyan glow and analyze them instantly.
+  - Alt + Drag Capture: Drag a rectangle over any image, layout, or section of the screen to isolate it for visual and contextual analysis.
+  - YouTube Spoken Transcript Synthesis: Run Magic Pointer on any YouTube video to instantly summarize, translate, or extract insights from its spoken transcript in seconds.
+
+• Custom Persona Manager (Train Your Voice): 
+  - Stop sounding like a generic AI chatbot. Train Noos.AI to clone your writing style by analyzing your writing samples.
+  - Create and switch between specialized custom personas (e.g., "Professional Copywriter", "ELI5 Explainer", "Direct Email Responder", or "Technical Editor") from the brand-new Options Page.
+
+• Notion Integration: 
+  - Seamlessly connect your Notion workspace using your API integration token and Page ID.
+  - Save any AI summary, explanation, drafted reply, or research note directly to your Notion docs with a single click.
+
+• Next-Gen Context Menu ("Open in LLM" & "AI Search Selection"):
+  - Select text and run "AI Search Selection" to get Perplexity-style synthesized research with direct citations.
+  - Want a deeper dive? Use "Open in LLM" to instantly export your selected text or prompt directly to ChatGPT, Claude, or Gemini in a new tab.
+
+• Refined Glassmorphic UI & Visual Excellence: 
+  - Read with ease using full Markdown rendering for beautifully structured tables, bullet points, and code blocks.
+  - Smooth visual transitions, fadeInUp entrance animations, and an animated copy-to-clipboard checkmark provide premium tactile feedback.
+
+---
+
+✅ One Extension, Four Superpowers:
+Noos.AI replaces multiple individual subscriptions, saving you money and valuable RAM:
+
+1. AI Researcher: Like a personal research assistant, our "AI Search" synthesizes the live web into comprehensive answers with citations.
+2. Writing Assistant: Like a smart grammar tool, but with deep "Ghost Input" capability to rewrite, improve, or draft replies in your exact voice in-place.
+3. Summarizer & Translator: Condense dense, multi-hour articles or translate between 30+ regional languages with superior accuracy.
+4. Sentiment Analyst: Dive beneath the surface of any message or transcript, breaking down psychological tone, emotional drivers, and core summaries.
+
+---
+
+🧠 Generation & Extraction Features (Included on Free Tier):
+• "Explain This": Breakdown complex code, legal terms, or scientific papers.
+• "Simplify This": Turn dense academic prose or industry jargon into plain, clear English.
+• "Draft Reply": Select an email or tweet and get a context-aware drafted response.
+• "Rewrite & Improve": Select text you typed in any input field, right-click, and watch it replace in-place instantly.
+• In-Panel History: Toggle back and forth between recent results without losing your reading flow.
+
+---
+
+🏆 Unlock Unlimited Power with Premium (Just €4.99/Month)
+Love your 10 free daily actions but need more? Go unlimited!
+• Unlimited Usage: Zero daily limits on any AI actions, Magic Pointer sessions, or rewrites.
+• Priority Processing: Bypass peak-hour queues with ultra-low latency routing.
+• Advanced Reasoning: Better models for long-form documents and complex academic papers.
+
+Install Noos.AI today and upgrade your browsing from passive reading to active, spatial understanding!
+
+Privacy First: Your data is processed securely via HTTPS, never used for training, and is never stored on our servers. We respect your digital workspace.
