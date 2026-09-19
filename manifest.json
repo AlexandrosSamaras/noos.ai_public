@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Noos.AI",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Get 10 FREE daily AI actions! Summarize, explain, search, translate, and analyze any text. Your all-in-one AI browser copilot.",
   "permissions": [
     "activeTab",
