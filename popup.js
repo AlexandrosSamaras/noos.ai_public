@@ -177,6 +177,19 @@ document.addEventListener("DOMContentLoaded", () => {
       isPremium = data.isPremium === true;
       updateTierInfo(isPremium);
 
+      // Auto-heal: If user has a licenseKey saved but isPremium is false, automatically verify and restore premium
+      if (!isPremium && data.licenseKey) {
+        console.log("Popup: License key detected without active premium flag. Attempting auto-restore...");
+        sendMessageToBackground({ action: "verifyLicenseKey", licenseKey: data.licenseKey }, (response) => {
+          if (response?.success && response?.isPremium) {
+            chrome.storage.sync.set({ isPremium: true });
+            isPremium = true;
+            updateTierInfo(true);
+            console.log("Popup: Premium auto-restored successfully.");
+          }
+        });
+      }
+
       // --- [MODIFIED] Persona Dropdown Population ---
       if (personaSelect) {
         // 1. Clear existing options (except defaults if they were hardcoded, but they are in HTML)

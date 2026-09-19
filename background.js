@@ -40,10 +40,17 @@ function setupContextMenus() {
 
 // --- Initialization ---
 chrome.runtime.onInstalled.addListener((details) => {
-    // ... (This function is unchanged) ...
     setupContextMenus();
 
-    chrome.storage.sync.get(['userId', 'userPersona'], (data) => {
+    chrome.storage.sync.get([
+        'userId',
+        'userPersona',
+        'extensionEnabled',
+        'isPremium',
+        'licenseKey',
+        'enableNegativeAnimation',
+        'enablePositiveAnimation'
+    ], (data) => {
         const toSet = {};
         if (!data.userId) {
             toSet.userId = crypto.randomUUID();
@@ -57,19 +64,37 @@ chrome.runtime.onInstalled.addListener((details) => {
             console.log(`BG: Setting default persona.`);
         }
 
-        chrome.storage.sync.set(toSet);
-    });
+        // Only set default values if they are undefined (preserve existing user settings on update)
+        if (data.extensionEnabled === undefined) {
+            toSet.extensionEnabled = true;
+        }
 
-    chrome.storage.sync.set({
-        extensionEnabled: true,
-        isPremium: false,
-        enableNegativeAnimation: true,
-        enablePositiveAnimation: true
-    }, () => {
-        if (chrome.runtime.lastError) {
-            console.error("BG: Error setting default values:", chrome.runtime.lastError);
-        } else {
-            console.log("BG: Default values set on install.");
+        if (data.enableNegativeAnimation === undefined) {
+            toSet.enableNegativeAnimation = true;
+        }
+
+        if (data.enablePositiveAnimation === undefined) {
+            toSet.enablePositiveAnimation = true;
+        }
+
+        // CRITICAL: NEVER overwrite isPremium on update!
+        // Only set default false if user is brand new (isPremium is undefined AND no licenseKey exists)
+        if (data.isPremium === undefined && !data.licenseKey) {
+            toSet.isPremium = false;
+        } else if (data.licenseKey && !data.isPremium) {
+            // Auto-heal lost clients: Restore premium if a license key exists
+            toSet.isPremium = true;
+            console.log("BG: Existing license key found. Restoring premium status.");
+        }
+
+        if (Object.keys(toSet).length > 0) {
+            chrome.storage.sync.set(toSet, () => {
+                if (chrome.runtime.lastError) {
+                    console.error("BG: Error setting default values:", chrome.runtime.lastError);
+                } else {
+                    console.log("BG: Settings initialized/preserved on install/update.");
+                }
+            });
         }
     });
 });
