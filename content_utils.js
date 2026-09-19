@@ -2,21 +2,16 @@
 // --- Utility: Draggable Panel ---
 function makeElementDraggable(elmnt, dragHandle) {
     let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-    if (dragHandle) {
-        dragHandle.onmousedown = dragMouseDown;
-        dragHandle.style.cursor = 'move'; // Visual cue
-    } else {
-        elmnt.onmousedown = dragMouseDown;
-        elmnt.style.cursor = 'move';
-    }
+    const handle = dragHandle || elmnt;
+    handle.style.cursor = 'move';
 
     function dragMouseDown(e) {
         e = e || window.event;
         e.preventDefault();
         pos3 = e.clientX;
         pos4 = e.clientY;
-        document.onmouseup = closeDragElement;
-        document.onmousemove = elementDrag;
+        document.addEventListener('mouseup', closeDragElement);
+        document.addEventListener('mousemove', elementDrag);
     }
 
     function elementDrag(e) {
@@ -35,9 +30,11 @@ function makeElementDraggable(elmnt, dragHandle) {
 
     function closeDragElement() {
         // stop moving when mouse button is released:
-        document.onmouseup = null;
-        document.onmousemove = null;
+        document.removeEventListener('mouseup', closeDragElement);
+        document.removeEventListener('mousemove', elementDrag);
     }
+
+    handle.addEventListener('mousedown', dragMouseDown);
 }
 
 // --- Utility: Simple Markdown Parser ---
@@ -73,7 +70,7 @@ function parseMarkdown(text) {
     html = html.replace(/\n/g, '<br>');
 
     // Clean up <br> after block elements
-    html = html.replace(/<\/h[1-3]><br>/g, '</h$1>');
+    html = html.replace(/<\/h([1-3])><br>/g, (m, level) => `</h${level}>`);
     html = html.replace(/<\/ul><br>/g, '</ul>');
     html = html.replace(/<\/blockquote><br>/g, '</blockquote>');
 

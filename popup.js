@@ -385,4 +385,12 @@ document.addEventListener("DOMContentLoaded", () => {
   if (analyzeSimplifyCustom) analyzeSimplifyCustom.addEventListener("click", () => handleCustomAnalysis("simplify"));
   if (analyzeSearchCustom) analyzeSearchCustom.addEventListener("click", () => handleCustomAnalysis("search"));
 
+  const openOptionsBtn = document.getElementById('openOptionsBtn');
+  if (openOptionsBtn) {
+    openOptionsBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      chrome.runtime.openOptionsPage();
+    });
+  }
+
 });

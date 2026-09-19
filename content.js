@@ -1,3 +1,7 @@
+(() => {
+if (window.__noosai_injected) return;
+window.__noosai_injected = true;
+
 // c:\Users\alexa\OneDrive\Υπολογιστής\noos.ai v1.7\content.js
 // content.js - v5.0 - Added Conversational Follow-up
 
@@ -418,8 +422,19 @@ function showResultPanel(titleText, resultData, resultType = 'info', isError = f
                 </div>`;
             plainTextForCopy = resultData?.message || 'Working...';
         } else if (resultType === 'error') {
-            formattedContent = `<p style="color: #ffaaaa;">${escapeHTML(resultData?.error || resultData?.details || 'An error occurred.')}</p>`;
-            plainTextForCopy = resultData?.error || resultData?.details || 'Error';
+            const errorMsg = resultData?.details || resultData?.error || 'An error occurred.';
+            const isLimitError = errorMsg.includes('limit reached') || errorMsg.includes('Payment Required');
+            if (isLimitError) {
+                formattedContent = `
+                    <div style="text-align: center; padding: 20px 10px;">
+                        <p style="color: #ff7b72; font-size: 14px; font-weight: 500; margin-bottom: 16px;">${escapeHTML(errorMsg)}</p>
+                        <a href="https://noosai.co.uk" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #00ffff, #ff00ff); color: #000; font-weight: 700; text-decoration: none; padding: 10px 22px; border-radius: 999px; font-size: 13px; box-shadow: 0 0 15px rgba(0, 255, 255, 0.4); transition: transform 0.2s;">Upgrade to Premium</a>
+                    </div>
+                `;
+            } else {
+                formattedContent = `<p style="color: #ffaaaa;">${escapeHTML(errorMsg)}</p>`;
+            }
+            plainTextForCopy = errorMsg;
             isError = true;
         } else if (resultType === 'sentiment') {
             const sentiment = resultData?.sentiment || 'Unknown';
@@ -546,6 +561,10 @@ function showResultPanel(titleText, resultData, resultType = 'info', isError = f
             formattedContent = `<div class="noosai-markdown-content">${htmlContent}</div>`;
             plainTextForCopy = followUpText;
             showFollowUp = true; // [NEW] Show follow-up so conversation can continue
+
+        } else if (resultType === 'success' || resultType === 'info') {
+            formattedContent = `<p style="color: #4ade80; font-size: 14px; margin: 10px 0; font-weight: 500;">${escapeHTML(resultData?.message || 'Operation successful.')}</p>`;
+            plainTextForCopy = resultData?.message || 'Success';
 
         } else {
             console.warn(`CS ShowPanel: Unknown result type '${resultType}'. Displaying raw data.`);
@@ -1159,9 +1178,12 @@ try {
                         case 'translate': panelTitle = "Translation"; break;
                         case 'explain': panelTitle = "Explanation"; break;
                         case 'simplify': panelTitle = "Simplified Text"; break;
+                        case 'rewrite': panelTitle = "Rewritten Text"; break;
+                        case 'reply': panelTitle = "Draft Reply"; break;
                         case 'search': panelTitle = "Search Result"; break;
+                        case 'magicPointer': panelTitle = "Magic Pointer Context"; break;
                         case 'followUp': panelTitle = "Follow-up Response"; break; // [NEW]
-                        default: panelTitle = "Unknown Result"; isErrorResult = true; break;
+                        default: panelTitle = "AI Result"; isErrorResult = false; break;
                     }
                 } else { panelTitle = "Error"; }
 
@@ -1460,7 +1482,17 @@ document.addEventListener('keydown', (e) => {
         isAltPressed = true;
         setupMagicPointerV2();
         document.body.classList.add('noosai-magic-pointer-ready');
-        hoverHighlight.style.display = 'block';
+        if (hoverHighlight) hoverHighlight.style.display = 'block';
+    } else if (e.key === 'Escape') {
+        if (isAltPressed) {
+            isAltPressed = false;
+            document.body.classList.remove('noosai-magic-pointer-ready');
+            if (hoverHighlight) hoverHighlight.style.display = 'none';
+            if (isDragging) cancelDrag();
+        }
+        if (resultPanel && resultPanel.classList.contains('panel-visible')) {
+            hideResultPanel();
+        }
     }
 });
 
@@ -1471,6 +1503,14 @@ document.addEventListener('keyup', (e) => {
         if (hoverHighlight) hoverHighlight.style.display = 'none';
         if (isDragging) cancelDrag();
     }
+});
+
+// Reset Alt state when window loses focus (e.g. Alt+Tab, switching apps)
+window.addEventListener('blur', () => {
+    isAltPressed = false;
+    document.body.classList.remove('noosai-magic-pointer-ready');
+    if (hoverHighlight) hoverHighlight.style.display = 'none';
+    if (isDragging) cancelDrag();
 });
 
 document.addEventListener('mousemove', (e) => {
@@ -1732,6 +1772,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                 isSelection: !!request.customRect
             });
         };
+        img.onerror = () => {
+            magicPointerThinking = false;
+            document.body.classList.remove('noosai-magic-pointer-loading');
+            showResultPanel("Error", { error: "Failed to load screenshot capture." }, 'error', true);
+        };
         img.src = request.dataUrl;
     }
     
@@ -1739,13 +1784,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         magicPointerThinking = false;
         document.body.classList.remove('noosai-magic-pointer-loading');
         
-        if (request.error) {
-            showResultPanel("Magic Pointer Error", { error: request.error }, 'error', true);
+        if (request.error || request.result?.error) {
+            const errMsg = request.error || request.result?.details || request.result?.error || "Magic Pointer request failed.";
+            showResultPanel("Magic Pointer Error", { error: errMsg }, 'error', true);
             return;
         }
         
         // Use 'search' result type as it presents text well
-        showResultPanel("Magic Pointer Context", { searchResult: request.result.summary || request.result.replyText || request.result.raw || JSON.stringify(request.result) }, 'search', false);
+        const resultText = request.result?.summary || request.result?.replyText || request.result?.raw || (typeof request.result === 'string' ? request.result : JSON.stringify(request.result));
+        showResultPanel("Magic Pointer Context", { searchResult: resultText }, 'search', false);
     }
 });
 // --- [END NEW] ---
@@ -1754,3 +1801,4 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 initializeExtensionState();
 checkAndPerformLLMPaste(); // [NEW] Check for pending paste on load
 console.log("NoosAI Content Script: Initialization finished (v5.0)");
+})();

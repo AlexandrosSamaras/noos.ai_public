@@ -96,6 +96,23 @@ chrome.runtime.onInstalled.addListener((details) => {
                 }
             });
         }
+
+        // Auto-inject content scripts into already open tabs so extension works immediately
+        chrome.tabs.query({ url: ["http://*/*", "https://*/*"] }, (tabs) => {
+            if (!tabs) return;
+            for (const tab of tabs) {
+                if (tab.id) {
+                    chrome.scripting.executeScript({
+                        target: { tabId: tab.id },
+                        files: ["content_utils.js", "content.js"]
+                    }).catch(() => {});
+                    chrome.scripting.insertCSS({
+                        target: { tabId: tab.id },
+                        files: ["content.css"]
+                    }).catch(() => {});
+                }
+            }
+        });
     });
 });
 
@@ -209,13 +226,13 @@ function performAnalysisAction(tabId, textToAnalyze, action, position, options =
 
             const isPremium = settings.isPremium === true;
             const userLicenseKey = settings.licenseKey || null;
-            const userId = settings.userId;
+            let userId = settings.userId;
             const userVoiceStyle = settings.userVoiceStyle || null;
 
             if (!userId) {
-                console.error("BG: CRITICAL - UserID not found in storage. This should not happen.");
-                chrome.tabs.sendMessage(tabId, { action: "showResult", resultType: "error", data: { error: "Extension error: UserID not found. Please reinstall." }, position: position }).catch(e => console.warn("BG Err send:", e.message));
-                return;
+                userId = crypto.randomUUID();
+                chrome.storage.sync.set({ userId });
+                console.log(`BG: Auto-generated missing userId: ${userId}`);
             }
 
             // Combine persona with voice style if available
@@ -247,7 +264,9 @@ function performAnalysisAction(tabId, textToAnalyze, action, position, options =
                             return response.json().then(errData => {
                                 console.warn(`BG: Auth/Payment error from server: ${errData.details}`);
                                 if (response.status === 403) {
-                                    chrome.storage.sync.set({ isPremium: false, licenseKey: null });
+                                    // CRITICAL: Set isPremium to false but do NOT wipe licenseKey from storage!
+                                    // This allows auto-heal or manual re-activation when payment/server recovers.
+                                    chrome.storage.sync.set({ isPremium: false });
                                 }
                                 throw new Error(errData.details || "An error occurred.");
                             });
@@ -565,13 +584,14 @@ chrome.runtime.onMessage.addListener(
             chrome.storage.sync.get(["isPremium", "licenseKey", "userId", "userPersona", "userVoiceStyle"], (settings) => {
                 const isPremium = settings.isPremium === true;
                 const userLicenseKey = settings.licenseKey || null;
-                const userId = settings.userId;
+                let userId = settings.userId;
                 const basePersona = settings.userPersona || "default";
                 const userVoiceStyle = settings.userVoiceStyle || null;
 
                 if (!userId) {
-                    sendResponse({ success: false, error: "User ID missing." });
-                    return;
+                    userId = crypto.randomUUID();
+                    chrome.storage.sync.set({ userId });
+                    console.log(`BG: Auto-generated missing userId for Ghost Action: ${userId}`);
                 }
 
                 // Use voice style if analyzing samples, otherwise use it for rewrite actions
@@ -669,14 +689,23 @@ chrome.runtime.onMessage.addListener(
         else if (request.action === "magicPointerPayload") {
             console.log("BG: Received magicPointerPayload, sending to backend...");
             chrome.storage.sync.get(["isPremium", "licenseKey", "userId", "userPersona"], (settings) => {
+                let userId = settings.userId;
+                if (!userId) {
+                    userId = crypto.randomUUID();
+                    chrome.storage.sync.set({ userId });
+                    console.log(`BG: Auto-generated missing userId for Magic Pointer: ${userId}`);
+                }
+
                 const payload = {
                     action: "magicPointer",
                     text: `User clicked at X:${request.coords.x}, Y:${request.coords.y}. DOM Context:\n${request.context}`,
                     imageData: request.imageData,
                     persona: settings.userPersona || "default",
                     licenseKey: settings.isPremium ? settings.licenseKey : null,
-                    userId: settings.userId,
-                    pageContext: { url: sender.tab?.url || "", title: sender.tab?.title || "" }
+                    userId: userId,
+                    pageContext: { url: sender.tab?.url || "", title: sender.tab?.title || "" },
+                    customPrompt: request.customPrompt || null,
+                    isSelection: !!request.isSelection
                 };
                 
                 fetch(BACKEND_ANALYZE_URL, {
@@ -684,9 +713,14 @@ chrome.runtime.onMessage.addListener(
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 })
-                .then(res => res.json())
-                .then(data => {
-                    chrome.tabs.sendMessage(sender.tab.id, { action: "magicPointerResponse", result: data });
+                .then(async res => {
+                    const data = await res.json().catch(() => ({}));
+                    if (!res.ok || data.error) {
+                        const errText = data.details || data.error || `Server Error (${res.status})`;
+                        chrome.tabs.sendMessage(sender.tab.id, { action: "magicPointerResponse", error: errText });
+                    } else {
+                        chrome.tabs.sendMessage(sender.tab.id, { action: "magicPointerResponse", result: data });
+                    }
                 })
                 .catch(err => {
                     console.error("BG: Magic Pointer Fetch Error:", err);

@@ -239,9 +239,12 @@ document.addEventListener('DOMContentLoaded', () => {
       enablePositiveAnimation: posAnimCheckbox ? posAnimCheckbox.checked : true,
       enableMagicPointer: magicPointerCheckbox ? magicPointerCheckbox.checked : true,
       notionApiKey: notionApiKeyInput ? notionApiKeyInput.value.trim() : '',
-      notionPageId: notionPageIdInput ? notionPageIdInput.value.trim() : '',
-      userPersona: document.getElementById('userPersona') ? document.getElementById('userPersona').value : 'default'
+      notionPageId: notionPageIdInput ? notionPageIdInput.value.trim() : ''
     };
+    const personaInputEl = document.getElementById('userPersona');
+    if (personaInputEl) {
+      settingsToSave.userPersona = personaInputEl.value;
+    }
 
     // Save them to chrome.storage.sync
     chrome.storage.sync.set(settingsToSave, () => {
