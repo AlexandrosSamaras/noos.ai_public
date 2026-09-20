@@ -82,6 +82,12 @@ document.addEventListener("DOMContentLoaded", () => {
         premiumStatusTopBarElement.style.display = 'none'; // [NEW] Hide badge if free
       }
     }
+
+    const versionEl = document.getElementById('extensionVersion');
+    if (versionEl) {
+      const ver = chrome.runtime?.getManifest?.()?.version || '3.0.2';
+      versionEl.textContent = `v${ver} ${premiumStatus ? 'Premium' : 'Free'}`;
+    }
   }
 
   function updatePopupUIEnabledState(isEnabled) {
