@@ -113,6 +113,13 @@ chrome.runtime.onInstalled.addListener((details) => {
                 }
             }
         });
+
+        // Automatically open interactive onboarding on first install
+        if (details.reason === 'install') {
+            chrome.tabs.create({
+                url: chrome.runtime.getURL('welcome.html')
+            });
+        }
     });
 });
 

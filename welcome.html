@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to Noos.AI — Your Spatial AI Copilot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary-cyan: #00ffff;
+      --secondary-blue: #0066ff;
+      --bg-dark: #0b1120;
+      --bg-card: rgba(30, 41, 59, 0.7);
+      --border-glow: rgba(0, 255, 255, 0.25);
+      --text-light: #f1f5f9;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: radial-gradient(circle at 50% 10%, #1e1b4b 0%, var(--bg-dark) 70%);
+      color: var(--text-light);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px 80px;
+    }
+
+    .container {
+      max-width: 860px;
+      width: 100%;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 255, 255, 0.1);
+      border: 1px solid var(--border-glow);
+      padding: 6px 18px;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      color: var(--primary-cyan);
+      font-weight: 500;
+      margin-bottom: 16px;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--primary-cyan);
+      box-shadow: 0 0 8px var(--primary-cyan);
+    }
+
+    h1 {
+      font-size: 2.6rem;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #ffffff 40%, var(--primary-cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      font-size: 1.15rem;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* Steps Cards */
+    .step-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-glow);
+      border-radius: 16px;
+      padding: 28px;
+      margin-bottom: 24px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .step-number {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--secondary-blue), var(--primary-cyan));
+      color: #0b1120;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .step-title {
+      font-size: 1.35rem;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    /* Pin Helper Graphic */
+    .pin-graphic {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px dashed rgba(148, 163, 184, 0.3);
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-top: 12px;
+    }
+
+    .pin-instruction {
+      font-size: 0.95rem;
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+
+    .pin-visual {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: #1e293b;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .icon-puzzle {
+      color: #f59e0b;
+      font-size: 1.2rem;
+    }
+
+    .icon-pin {
+      color: var(--primary-cyan);
+      font-size: 1.2rem;
+    }
+
+    /* Interactive Sandbox */
+    .sandbox-container {
+      background: rgba(15, 23, 42, 0.9);
+      border: 2px solid rgba(0, 255, 255, 0.3);
+      border-radius: 12px;
+      padding: 24px;
+      margin-top: 14px;
+      position: relative;
+    }
+
+    .sandbox-hint {
+      display: inline-block;
+      background: rgba(0, 255, 255, 0.15);
+      color: var(--primary-cyan);
+      border: 1px solid rgba(0, 255, 255, 0.4);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    .sandbox-demo-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 680px) {
+      .sandbox-demo-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .demo-box {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 18px;
+      user-select: text;
+    }
+
+    .demo-box h4 {
+      font-size: 1rem;
+      color: #38bdf8;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .demo-box p {
+      font-size: 0.88rem;
+      line-height: 1.6;
+      color: #cbd5e1;
+    }
+
+    /* SVG Chart */
+    .chart-svg {
+      width: 100%;
+      height: 110px;
+      margin-top: 8px;
+    }
+
+    /* Free Quota Notice */
+    .quota-box {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .quota-item {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .quota-item-val {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--primary-cyan);
+      margin-bottom: 4px;
+    }
+
+    .quota-item-lbl {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* Actions CTA */
+    .footer-actions {
+      text-align: center;
+      margin-top: 36px;
+    }
+
+    .btn-primary {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--secondary-blue), var(--primary-cyan));
+      color: #0b1120;
+      font-weight: 700;
+      font-size: 1.05rem;
+      padding: 14px 36px;
+      border-radius: 12px;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+      cursor: pointer;
+      border: none;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="badge">
+        <span class="badge-dot"></span> Noos.AI v3.0 Installed Successfully
+      </div>
+      <h1>Instant AI Understanding on Any Screen</h1>
+      <p class="subtitle">No more copy-pasting into ChatGPT. Follow these 2 quick steps to activate your daily superpower.</p>
+    </div>
+
+    <!-- Step 1: Pin the Extension -->
+    <div class="step-card">
+      <div class="step-header">
+        <div class="step-number">1</div>
+        <div class="step-title">Pin Noos.AI to your Chrome Toolbar</div>
+      </div>
+      <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 12px;">
+        Google Chrome hides new extensions by default. Pin Noos.AI so you can see your action counter and access options with 1 click.
+      </p>
+      <div class="pin-graphic">
+        <div class="pin-instruction">
+          1. Click the <strong>puzzle piece icon</strong> <span class="icon-puzzle">🧩</span> in the top-right corner of Chrome.<br>
+          2. Click the <strong>pin icon</strong> <span class="icon-pin">📌</span> next to <strong>Noos.AI</strong>.
+        </div>
+        <div class="pin-visual">
+          🧩 Extensions → 📌 Pin Noos.AI
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: The Magic Pointer Sandbox -->
+    <div class="step-card">
+      <div class="step-header">
+        <div class="step-number">2</div>
+        <div class="step-title">Test the Magic Pointer Right Now</div>
+      </div>
+      <p style="color: var(--text-muted); font-size: 0.95rem;">
+        You never need to open ChatGPT in a separate tab again. Test it live on the sample chart or text below:
+      </p>
+
+      <div class="sandbox-container">
+        <div class="sandbox-hint">
+          ⚡ HOLD 'ALT' & DRAG A BOX OVER EITHER DEMO CARD BELOW:
+        </div>
+
+        <div class="sandbox-demo-grid">
+          <!-- Demo 1: Visual Data -->
+          <div class="demo-box">
+            <h4>📊 Test Area A: Visual Chart</h4>
+            <p style="font-size: 0.8rem; color: #94a3b8;">Hold Alt + Drag around this chart to extract instant trends:</p>
+            <svg class="chart-svg" viewBox="0 0 300 100">
+              <defs>
+                <linearGradient id="grad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" style="stop-color:#00ffff;stop-opacity:0.4" />
+                  <stop offset="100%" style="stop-color:#0059ff;stop-opacity:0.0" />
+                </linearGradient>
+              </defs>
+              <polyline fill="url(#grad)" stroke="#00ffff" stroke-width="2.5"
+                points="0,85 45,70 90,78 135,45 180,55 225,20 270,35 300,10" />
+              <line x1="0" y1="95" x2="300" y2="95" stroke="#334155" stroke-width="1" />
+              <circle cx="225" cy="20" r="4" fill="#00ffff" />
+              <text x="210" y="12" fill="#38bdf8" font-size="9" font-family="sans-serif">+34% Surge</text>
+            </svg>
+          </div>
+
+          <!-- Demo 2: Complex Text -->
+          <div class="demo-box">
+            <h4>🧠 Test Area B: Dense Text</h4>
+            <p>
+              "The epistemological boundary of multimodal transformer architectures relies heavily on latent spatial tokens. Cross-attention layers fuse pixel coordinate projections with semantic language embeddings to resolve localized contextual references."
+            </p>
+            <p style="font-size: 0.78rem; color: #38bdf8; margin-top: 8px;">
+              👉 Hold Alt + Drag or Right-Click → "Explain This"
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Transparent Quota -->
+    <div class="step-card">
+      <div class="step-header">
+        <div class="step-number">3</div>
+        <div class="step-title">Your Daily Free Allowance</div>
+      </div>
+      <p style="color: var(--text-muted); font-size: 0.95rem;">
+        We believe in complete transparency. No surprises, no hidden credit cards:
+      </p>
+      <div class="quota-box">
+        <div class="quota-item">
+          <div class="quota-item-val">10 / Day</div>
+          <div class="quota-item-lbl">Free Spatial AI Actions</div>
+        </div>
+        <div class="quota-item">
+          <div class="quota-item-val">0€ / Free</div>
+          <div class="quota-item-lbl">No Credit Card Needed</div>
+        </div>
+        <div class="quota-item">
+          <div class="quota-item-val">Midnight</div>
+          <div class="quota-item-lbl">Automatic Daily Reset</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Action -->
+    <div class="footer-actions">
+      <button class="btn-primary" id="startBtn">Got it! Let's Start Browsing →</button>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('startBtn').addEventListener('click', () => {
+      window.close();
+    });
+  </script>
+</body>
+</html>
