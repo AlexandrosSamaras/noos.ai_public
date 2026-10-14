@@ -2,15 +2,34 @@
 <html>
 
 <head>
+  <meta charset="UTF-8">
   <title>Noos.AI Options</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="options.css">
 </head>
 
 <body>
   <h1>Noos.AI Options</h1>
 
+  <!-- [NEW] Pro Plan / Upgrade Banner -->
+  <div id="optionsPlanBanner" class="option-group plan-banner">
+    <div class="plan-banner-content">
+      <div class="plan-banner-text">
+        <span id="optionsPlanBadge" class="plan-badge-pill">FREE PLAN</span>
+        <h3 id="optionsPlanTitle" style="margin: 6px 0 4px 0;">Unlock Unlimited AI, Voice Cloning &amp; Cloud Sync</h3>
+        <p id="optionsPlanDesc" class="note" style="margin: 0;">You get 10 daily AI actions + 1 custom persona free. Upgrade to Pro ($5/mo) for Unlimited Actions, AI Voice Cloning, Inline Ghost Writer, and Unlimited Cloud-Synced Personas across Extension &amp; Web Studio.</p>
+      </div>
+      <div class="plan-banner-actions">
+        <a id="optionsUpgradeBtn" href="https://noosai.co.uk/#pricing" target="_blank" class="upgrade-cta-btn">Upgrade to Pro ($5/mo)</a>
+        <a href="https://noosai.co.uk/app/" target="_blank" class="studio-cta-link">Open Web Studio &rarr;</a>
+      </div>
+    </div>
+  </div>
+
   <div class="option-group">
-    <h2>Animation Settings</h2>
+    <h2>Animation &amp; Visual Settings</h2>
     <div class="settings-section" id="animationTogglesContainerOptions">
       <div class="toggle-container animation-toggle">
         <span class="toggle-label-small">Negative Shake Effect</span>
@@ -27,7 +46,7 @@
         </label>
       </div>
       <div class="toggle-container animation-toggle">
-        <span class="toggle-label-small">Enable Magic Pointer (Alt+Click)</span>
+        <span class="toggle-label-small">Enable Magic Pointer (Alt+Click Vision Analysis)</span>
         <label class="switch small-switch">
           <input type="checkbox" id="enableMagicPointerOptions">
           <span class="slider round"></span>
@@ -38,14 +57,14 @@
 
   <!-- [NEW] NOTION INTEGRATION SECTION -->
   <div class="option-group">
-    <h2>Integrations</h2>
+    <h2>1-Click Notion Integration <span class="feature-tag-pill">Cloud Synced</span></h2>
     <p class="note">
-      Find your Page ID (the long string in your Notion URL) and get your "Internal Integration Token" from <a
+      Export any AI analysis, YouTube summary, or chart breakdown directly to your Notion workspace in 1 click. Find your Page ID (the 32-character string in your Notion URL) and get your "Internal Integration Token" from <a
         href="https://www.notion.so/my-integrations" target="_blank">notion.so/my-integrations</a>.
     </p>
 
     <label for="notionApiKey">Notion API Key (Internal Token)</label>
-    <input type="password" id="notionApiKey" placeholder="Starts with 'secret_...'">
+    <input type="password" id="notionApiKey" placeholder="Starts with 'secret_...' or 'ntn_...'">
 
     <label for="notionPageId">Notion Page ID (to add content to)</label>
     <input type="text" id="notionPageId" placeholder="e.g., 8a9b4c7d2e1f4a9b8c7d6e5f4a3b2c1d">
@@ -54,20 +73,24 @@
 
   <!-- [NEW] CUSTOM PERSONA MANAGER -->
   <div class="option-group">
-    <h2>My Personas</h2>
+    <h2>My Custom Personas <span id="personaLimitBadge" class="feature-tag-pill">1 Free / Unlimited Pro</span></h2>
     <p class="note">
-      Create custom personas to tailor the AI's responses to your specific needs.
+      Create custom AI personas to tailor analysis and Ghost Writer responses to your exact workflow. Free users can create <strong>1 custom persona</strong>; Pro users unlock <strong>Unlimited Cloud-Synced Personas</strong>.
     </p>
     <div id="customPersonasContainer">
       <!-- Custom personas will be dynamically added here -->
     </div>
+    <div id="personaProUpsell" class="pro-upsell-inline hidden">
+      <span><strong>Want Unlimited Custom Personas + Cloud Sync?</strong> Upgrade to Pro ($5/mo) to create unlimited role-specific AI personas.</span>
+      <a href="https://noosai.co.uk/#pricing" target="_blank" class="upgrade-cta-small">Unlock Pro &rarr;</a>
+    </div>
     <div id="addPersonaForm">
       <h3>Add New Persona</h3>
       <label for="newPersonaName">Persona Name</label>
-      <input type="text" id="newPersonaName" placeholder="e.g., Concise Marketer">
+      <input type="text" id="newPersonaName" placeholder="e.g., Concise Marketer, SaaS Founder, Legal Reviewer">
       <label for="newPersonaPrompt">Persona Instructions</label>
       <textarea id="newPersonaPrompt"
-        placeholder="e.g., You are an expert Marketer. Focus on value propositions..."></textarea>
+        placeholder="e.g., You are an expert SaaS Marketer. Focus on value propositions, conversion drivers, and actionable takeaways..."></textarea>
       <button id="addPersonaButton">Add Persona</button>
     </div>
   </div>
@@ -75,27 +98,31 @@
 
   <!-- [NEW] Train Your Voice Section -->
   <div class="option-group">
-    <h2>Train Your Voice</h2>
+    <h2>Train Your AI Voice Clone <span class="feature-tag-pill pro-pill">PRO FEATURE (Free Preview Available)</span></h2>
     <p class="note">
-      Teach NoosAI to write exactly like you. Paste examples of your writing below.
+      Teach Noos.AI's inline Ghost Writer and Rewriter to write <em>exactly</em> like you. Paste 1–3 samples of your writing below. <strong>Free users can test and preview their AI voice analysis for free!</strong> Activating your cloned voice across all websites requires Pro.
     </p>
 
     <label for="voiceSample1">Sample 1 (e.g., an email you sent):</label>
     <textarea id="voiceSample1" rows="3" placeholder="Paste a sample here..."></textarea>
 
-    <label for="voiceSample2">Sample 2 (e.g., a slack message):</label>
+    <label for="voiceSample2">Sample 2 (e.g., a Slack or LinkedIn message):</label>
     <textarea id="voiceSample2" rows="3" placeholder="Paste another sample..."></textarea>
 
-    <label for="voiceSample3">Sample 3 (e.g., a social post):</label>
+    <label for="voiceSample3">Sample 3 (e.g., a post or memo):</label>
     <textarea id="voiceSample3" rows="3" placeholder="Paste one more sample..."></textarea>
 
-    <button id="analyzeVoiceButton">Analyze & Save My Voice</button>
+    <button id="analyzeVoiceButton">Analyze &amp; Train My Voice</button>
 
     <div id="voiceAnalysisResult" class="hidden">
-      <h3>Your Detected Style:</h3>
+      <h3>Your Detected Writing DNA:</h3>
       <div id="voiceStyleContainer">
         <p id="detectedStyleText">Analysis pending...</p>
         <textarea id="detectedStyleEdit" class="hidden" rows="4" style="width: 100%; margin-bottom: 10px;"></textarea>
+      </div>
+      <div id="voiceProLockNotice" class="pro-upsell-inline hidden" style="margin-top: 12px;">
+        <span><strong>Your Voice DNA is ready!</strong> Upgrade to Pro ($5/mo) to activate this voice clone inside the inline Ghost Writer on Gmail, LinkedIn, X, and Slack.</span>
+        <a href="https://noosai.co.uk/#pricing" target="_blank" class="upgrade-cta-small">Activate with Pro &rarr;</a>
       </div>
       <div class="voice-controls" style="margin-top: 10px; display: flex; gap: 10px;">
         <button id="editVoiceButton" class="small-button">Edit</button>
@@ -106,7 +133,7 @@
     </div>
   </div>
 
-  <button id="saveOptionsButton">Save Settings</button>
+  <button id="saveOptionsButton">Save &amp; Sync Settings</button>
 
   <div id="status"></div>
 

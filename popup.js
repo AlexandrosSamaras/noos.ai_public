@@ -38,6 +38,47 @@ document.addEventListener("DOMContentLoaded", () => {
     if (statusLabel) statusLabel.textContent = isEnabled ? "On" : "Off";
   }
 
+  function refreshQuotaMeter() {
+    const quotaMeterBox = document.getElementById("quotaMeterBox");
+    const quotaMeterCount = document.getElementById("quotaMeterCount");
+    const quotaProgressFill = document.getElementById("quotaProgressFill");
+
+    sendMessageToBackground({ action: "getQuotaStatus" }, (res) => {
+      if (!res || !res.limits) return;
+      if (res.tier === "pro" || isPremium) {
+        if (usageCounter) {
+          usageCounter.textContent = "Unlimited Pro Active";
+          usageCounter.style.display = "block";
+          usageCounter.style.color = "var(--primary-cyan)";
+        }
+        return;
+      }
+
+      const limit = res.limits.studioActions || 10;
+      const used = res.usage ? (res.usage.studioActions || 0) : 0;
+      const remaining = Math.max(0, limit - used);
+      const pct = Math.min(100, Math.round((used / limit) * 100));
+
+      if (usageCounter) {
+        usageCounter.textContent = `Free Actions: ${used}/${limit} used today`;
+        usageCounter.style.display = "block";
+      }
+      if (quotaMeterBox) quotaMeterBox.style.display = "flex";
+      if (quotaMeterCount) {
+        quotaMeterCount.textContent = remaining === 0 ? "0 left — Limit Reached" : `${remaining} / ${limit} left today`;
+        quotaMeterCount.style.color = remaining <= 2 ? "#f59e0b" : "var(--primary-cyan)";
+      }
+      if (quotaProgressFill) {
+        quotaProgressFill.style.width = `${pct}%`;
+        if (remaining <= 3) {
+          quotaProgressFill.classList.add("warning");
+        } else {
+          quotaProgressFill.classList.remove("warning");
+        }
+      }
+    });
+  }
+
   function updateTierInfo(premiumStatus) {
     isPremium = premiumStatus;
     const premiumStatusTopBarElement = document.getElementById('premiumStatusTopBar');
@@ -45,7 +86,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (premiumStatus) {
       if (tierInfo) tierInfo.textContent = "Premium Tier";
-      if (usageCounter) usageCounter.style.display = 'none';
+      if (usageCounter) {
+        usageCounter.textContent = "Unlimited Pro Active";
+        usageCounter.style.display = 'block';
+        usageCounter.style.color = 'var(--primary-cyan)';
+      }
       if (upgradeButton) upgradeButton.style.display = 'none';
       if (licenseSection) licenseSection.style.display = 'none';
       if (revenueSection) revenueSection.style.display = 'none'; // [NEW] Hide the entire top pill box
@@ -67,13 +112,14 @@ document.addEventListener("DOMContentLoaded", () => {
         tierInfo.style.marginBottom = '';
       }
       if (usageCounter) {
-        usageCounter.style.display = 'none';
+        usageCounter.style.display = 'block';
+        usageCounter.style.color = 'var(--text-dim)';
       }
       if (upgradeButton) {
         upgradeButton.style.display = 'block';
       }
       if (licenseSection) {
-        licenseSection.style.display = 'block';
+        licenseSection.style.display = 'flex';
       }
       if (revenueSection) {
         revenueSection.style.display = 'flex'; // [NEW] Show if free tier
@@ -81,12 +127,13 @@ document.addEventListener("DOMContentLoaded", () => {
       if (premiumStatusTopBarElement) {
         premiumStatusTopBarElement.style.display = 'none'; // [NEW] Hide badge if free
       }
+      refreshQuotaMeter();
     }
 
     const versionEl = document.getElementById('extensionVersion');
     if (versionEl) {
-      const ver = chrome.runtime?.getManifest?.()?.version || '3.0.2';
-      versionEl.textContent = `v${ver} ${premiumStatus ? 'Premium' : 'Free'}`;
+      const ver = chrome.runtime?.getManifest?.()?.version || '3.1.0';
+      versionEl.textContent = `v${ver} ${premiumStatus ? 'Pro' : 'Free'}`;
     }
   }
 
@@ -261,7 +308,7 @@ document.addEventListener("DOMContentLoaded", () => {
     upgradeButton.addEventListener("click", () => {
       if (toggleSwitch && toggleSwitch.checked) {
         console.log("Upgrade clicked.");
-        chrome.tabs.create({ url: "https://noosai.co.uk" });
+        chrome.tabs.create({ url: "https://noosai.co.uk/#pricing" });
       }
     });
   }

@@ -1,8 +1,13 @@
-// background.js - v3.0 - Gemini 3.1 Migration & CSS Isolation Improvements
+// background.js - v3.1 - Conversion, Freemium Meter, Ghost Input & Cloud Sync
 
 // --- Constants ---
-const BACKEND_ANALYZE_URL = "https://sentiment-analyzer-service-872183226779.us-central1.run.app/analyze";
-const BACKEND_VERIFY_URL = "https://sentiment-analyzer-service-872183226779.us-central1.run.app/verify-license";
+const BACKEND_BASE_URL = "https://sentiment-analyzer-service-872183226779.us-central1.run.app";
+const BACKEND_ANALYZE_URL = `${BACKEND_BASE_URL}/analyze`;
+const BACKEND_VERIFY_URL = `${BACKEND_BASE_URL}/verify-license`;
+const BACKEND_QUOTA_URL = `${BACKEND_BASE_URL}/quota/status`;
+const BACKEND_REPORT_URL = `${BACKEND_BASE_URL}/report`;
+const BACKEND_PERSONAS_URL = `${BACKEND_BASE_URL}/personas`;
+const BACKEND_USER_CONFIG_URL = `${BACKEND_BASE_URL}/user-config`;
 const VERIFY_LICENSE_SECRET = "4TheFuture2030@";
 const NOTION_API_URL_BASE = "https://api.notion.com/v1/blocks/"; // [NEW]
 const NOTION_VERSION = "2022-06-28"; // [NEW]
@@ -735,6 +740,98 @@ chrome.runtime.onMessage.addListener(
                 });
             });
             return true;
+        }
+        else if (request.action === "getQuotaStatus") {
+            chrome.storage.sync.get(["isPremium", "licenseKey", "userId"], (settings) => {
+                let userId = settings.userId;
+                if (!userId) {
+                    userId = crypto.randomUUID();
+                    chrome.storage.sync.set({ userId });
+                }
+                const isPremium = settings.isPremium === true;
+                const licenseKey = isPremium ? (settings.licenseKey || "") : "";
+                const url = `${BACKEND_QUOTA_URL}?userId=${encodeURIComponent(userId)}${licenseKey ? `&licenseKey=${encodeURIComponent(licenseKey)}` : ""}`;
+
+                fetch(url, { method: "GET" })
+                    .then(res => res.json())
+                    .then(data => {
+                        sendResponse({
+                            success: true,
+                            tier: data.tier || (isPremium ? "pro" : "free"),
+                            limits: data.limits || { studioActions: 10, magicPointer: 10 },
+                            usage: data.usage || { studioActions: 0, magicPointer: 0 },
+                            remaining: data.remaining || { studioActions: 10, magicPointer: 10 }
+                        });
+                    })
+                    .catch(err => {
+                        console.warn("BG: Quota fetch fallback:", err.message);
+                        sendResponse({
+                            success: false,
+                            tier: isPremium ? "pro" : "free",
+                            limits: { studioActions: 10, magicPointer: 10 },
+                            usage: { studioActions: 0, magicPointer: 0 },
+                            remaining: { studioActions: 10, magicPointer: 10 }
+                        });
+                    });
+            });
+            return true;
+        }
+
+        else if (request.action === "createShareReport") {
+            chrome.storage.sync.get(["userId"], (settings) => {
+                const userId = settings.userId || "anonymous";
+                fetch(BACKEND_REPORT_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        reportData: request.reportData,
+                        userId: userId
+                    })
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data && data.success && data.reportId) {
+                            const shareUrl = `https://noosai.co.uk/app/report.html?id=${data.reportId}`;
+                            sendResponse({ success: true, reportId: data.reportId, publicUrl: shareUrl });
+                        } else {
+                            sendResponse({ success: false, error: data.error || "Could not create shareable report." });
+                        }
+                    })
+                    .catch(err => {
+                        console.error("BG: createShareReport error:", err);
+                        sendResponse({ success: false, error: err.message || "Network error creating share link." });
+                    });
+            });
+            return true;
+        }
+
+        else if (request.action === "syncCloudSettings") {
+            chrome.storage.sync.get(["userId", "licenseKey", "isPremium", "notionApiKey", "notionPageId"], (settings) => {
+                if (!settings.userId) {
+                    sendResponse({ success: false, error: "No userId" });
+                    return;
+                }
+                fetch(BACKEND_USER_CONFIG_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        userId: settings.userId,
+                        licenseKey: settings.isPremium ? settings.licenseKey : null,
+                        notionApiKey: request.notionApiKey !== undefined ? request.notionApiKey : (settings.notionApiKey || ""),
+                        notionPageId: request.notionPageId !== undefined ? request.notionPageId : (settings.notionPageId || "")
+                    })
+                })
+                    .then(res => res.json())
+                    .then(data => sendResponse({ success: !!data.success, data }))
+                    .catch(err => sendResponse({ success: false, error: err.message }));
+            });
+            return true;
+        }
+
+        else if (request.action === "openOptionsPage") {
+            chrome.runtime.openOptionsPage();
+            sendResponse({ success: true });
+            return false;
         }
 
         console.warn("BG: Runtime message type not handled:", request);

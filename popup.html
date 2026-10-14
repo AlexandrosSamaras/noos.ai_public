@@ -6,7 +6,7 @@
   <link rel="stylesheet" href="popup.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 </head>
 
 <body class="nebula-glass">
@@ -35,11 +35,24 @@
 
     <!-- [NEW] Top Revenue Section (High Conversion) -->
     <div class="section revenue-section" id="revenueSection">
-      <button id="upgradeButton" class="button-upgrade">Upgrade to Premium</button>
+      <div class="quota-meter-box" id="quotaMeterBox">
+        <div class="quota-meter-header">
+          <span class="quota-meter-label" id="quotaMeterLabel">Free Daily Actions</span>
+          <span class="quota-meter-count" id="quotaMeterCount">10 / 10 left</span>
+        </div>
+        <div class="quota-progress-track">
+          <div class="quota-progress-fill" id="quotaProgressFill" style="width: 0%;"></div>
+        </div>
+        <div class="pro-value-teaser">
+          <strong>Pro ($5/mo):</strong> Unlimited AI, Voice Cloning, Ghost Writer &amp; Cloud Sync
+        </div>
+      </div>
+
+      <button id="upgradeButton" class="button-upgrade">Upgrade to Pro — $5/mo</button>
       
       <div id="licenseSection" class="license-area-pro">
-        <input type="text" id="licenseKeyInput" placeholder="Enter License Key">
-        <button id="verifyLicenseButton" class="button-activate">Activate Premium</button>
+        <input type="text" id="licenseKeyInput" placeholder="Have a License Key? Paste here">
+        <button id="verifyLicenseButton" class="button-activate">Activate Pro</button>
       </div>
       <div id="licenseStatus" class="status-message"></div>
     </div>
@@ -96,15 +109,15 @@
     <!-- Minimalist Footer -->
     <footer class="popup-footer">
       <div class="footer-pills">
+        <a href="https://noosai.co.uk/app/" target="_blank" class="glass-pill-btn" title="Open Full Web Studio">Studio</a>
         <a href="#" id="openOptionsBtn" class="glass-pill-btn">Settings</a>
-        <a href="https://billing.stripe.com/p/login/7sIdUUabQ2n79y0cMM" target="_blank" class="glass-pill-btn">Manage</a>
-        <a href="https://noosai.co.uk/#feedback-support" target="_blank" class="glass-pill-btn">Feedback</a>
-        <a href="https://noosai.co.uk/privacy" target="_blank" class="glass-pill-btn">Privacy</a>
+        <a href="https://billing.stripe.com/p/login/7sIdUUabQ2n79y0cMM" target="_blank" class="glass-pill-btn">Billing</a>
+        <a href="https://noosai.co.uk/#feedback-support" target="_blank" class="glass-pill-btn">Support</a>
       </div>
 
       <div class="footer-meta">
-        <div id="usageCounter" class="usage-text">Usage: 0/10</div>
-        <div id="extensionVersion">v3.0.2 Premium</div>
+        <div id="usageCounter" class="usage-text">Usage: 0/10 today</div>
+        <div id="extensionVersion">v3.1.0</div>
       </div>
     </footer>
   </div>

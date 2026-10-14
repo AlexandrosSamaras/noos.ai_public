@@ -16,15 +16,56 @@ document.addEventListener('DOMContentLoaded', () => {
   const addPersonaButton = document.getElementById('addPersonaButton');
   const newPersonaNameInput = document.getElementById('newPersonaName');
   const newPersonaPromptInput = document.getElementById('newPersonaPrompt');
+  const personaProUpsell = document.getElementById('personaProUpsell');
+  const personaLimitBadge = document.getElementById('personaLimitBadge');
 
-  // [NEW] State for personas
+  // Plan Banner Elements
+  const optionsPlanBadge = document.getElementById('optionsPlanBadge');
+  const optionsPlanTitle = document.getElementById('optionsPlanTitle');
+  const optionsPlanDesc = document.getElementById('optionsPlanDesc');
+  const optionsUpgradeBtn = document.getElementById('optionsUpgradeBtn');
+  const voiceProLockNotice = document.getElementById('voiceProLockNotice');
+
+  // [NEW] State for personas & premium status
   let customPersonas = [];
+  let isPremiumUser = false;
+
+  function updatePlanUI() {
+    if (isPremiumUser) {
+      if (optionsPlanBadge) {
+        optionsPlanBadge.textContent = 'PRO PLAN ACTIVE';
+        optionsPlanBadge.classList.add('pro-active');
+      }
+      if (optionsPlanTitle) {
+        optionsPlanTitle.textContent = 'Unlimited Pro Access & Cloud Sync Active';
+      }
+      if (optionsPlanDesc) {
+        optionsPlanDesc.textContent = 'You have full access to Unlimited AI Actions, Inline Ghost Writer, AI Voice Cloning, 1-Click Notion Export, and Cloud-Synced Personas.';
+      }
+      if (optionsUpgradeBtn) {
+        optionsUpgradeBtn.classList.add('hidden');
+      }
+      if (personaLimitBadge) {
+        personaLimitBadge.textContent = 'Unlimited Pro Cloud Sync';
+      }
+      if (personaProUpsell) {
+        personaProUpsell.classList.add('hidden');
+      }
+      if (voiceProLockNotice) {
+        voiceProLockNotice.classList.add('hidden');
+      }
+    } else {
+      if (customPersonas.length >= 1 && personaProUpsell) {
+        personaProUpsell.classList.remove('hidden');
+      }
+    }
+  }
 
   // --- Load Settings ---
   function loadSettings() {
     // Load all settings from storage
     chrome.storage.sync.get(
-      ['enableNegativeAnimation', 'enablePositiveAnimation', 'enableMagicPointer', 'notionApiKey', 'notionPageId', 'customPersonas'],
+      ['enableNegativeAnimation', 'enablePositiveAnimation', 'enableMagicPointer', 'notionApiKey', 'notionPageId', 'customPersonas', 'isPremium', 'licenseKey'],
       (data) => {
         if (chrome.runtime.lastError) {
           console.error("Options: Error loading settings:", chrome.runtime.lastError);
@@ -34,6 +75,8 @@ document.addEventListener('DOMContentLoaded', () => {
           }
           return;
         }
+
+        isPremiumUser = !!data.isPremium;
 
         // Set checkbox states (default to true if undefined)
         if (negAnimCheckbox) negAnimCheckbox.checked = data.enableNegativeAnimation !== false;
@@ -47,6 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // [NEW] Load and render custom personas
         customPersonas = data.customPersonas || [];
         renderPersonas();
+        updatePlanUI();
 
         console.log("Options: Settings loaded.");
       }
@@ -59,7 +103,8 @@ document.addEventListener('DOMContentLoaded', () => {
     personasContainer.innerHTML = ''; // Clear existing list
 
     if (customPersonas.length === 0) {
-      personasContainer.innerHTML = '<p class="note">No custom personas yet.</p>';
+      personasContainer.innerHTML = '<p class="note">No custom personas yet. Create your first custom AI persona below (1 included free!).</p>';
+      if (personaProUpsell) personaProUpsell.classList.add('hidden');
       return;
     }
 
@@ -72,21 +117,39 @@ document.addEventListener('DOMContentLoaded', () => {
           <strong>${escapeHTML(persona.name)}</strong>
           <p>${escapeHTML(persona.prompt)}</p>
         </div>
-        <button class="delete-persona-btn" data-index="${index}">&times;</button>
+        <button class="delete-persona-btn" data-index="${index}" title="Delete Persona">&times;</button>
       `;
       personaList.appendChild(listItem);
     });
     personasContainer.appendChild(personaList);
+
+    if (!isPremiumUser && customPersonas.length >= 1 && personaProUpsell) {
+      personaProUpsell.classList.remove('hidden');
+    } else if (personaProUpsell) {
+      personaProUpsell.classList.add('hidden');
+    }
   }
 
   function addPersona() {
     if (!newPersonaNameInput || !newPersonaPromptInput) return;
 
+    // Freemium Lure: 1st Custom Persona is free! 2+ requires Pro.
+    if (!isPremiumUser && customPersonas.length >= 1) {
+      if (personaProUpsell) {
+        personaProUpsell.classList.remove('hidden');
+        personaProUpsell.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      if (confirm("Free Plan includes 1 Custom Persona.\n\nUpgrade to Noos.AI Pro ($5/mo) to create Unlimited Custom Personas, sync them with Web Studio, and unlock AI Voice Cloning + Ghost Writer!\n\nWould you like to view Pro plans now?")) {
+        window.open('https://noosai.co.uk/#pricing', '_blank');
+      }
+      return;
+    }
+
     const name = newPersonaNameInput.value.trim();
     const prompt = newPersonaPromptInput.value.trim();
 
     if (!name || !prompt) {
-      alert("Please enter both a name and a prompt for the new persona.");
+      alert("Please enter both a name and instructions for the new persona.");
       return;
     }
 
@@ -120,6 +183,12 @@ document.addEventListener('DOMContentLoaded', () => {
       detectedStyleText.classList.remove('hidden');
       detectedStyleEdit.classList.add('hidden');
 
+      if (!isPremiumUser && voiceProLockNotice) {
+        voiceProLockNotice.classList.remove('hidden');
+      } else if (voiceProLockNotice) {
+        voiceProLockNotice.classList.add('hidden');
+      }
+
       // Reset buttons
       editVoiceButton.classList.remove('hidden');
       removeVoiceButton.classList.remove('hidden');
@@ -135,14 +204,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const s3 = document.getElementById('voiceSample3').value;
 
       if (!s1 && !s2 && !s3) {
-        alert("Please provide at least one writing sample.");
+        alert("Please provide at least one writing sample to analyze your writing DNA.");
         return;
       }
 
       const samples = [s1, s2, s3].filter(s => s && s.trim().length > 0).join("\n---\n");
       const btn = document.getElementById('analyzeVoiceButton');
 
-      btn.textContent = "Analyzing...";
+      btn.textContent = "Analyzing Your Writing DNA...";
       btn.disabled = true;
 
       // Send to background for analysis
@@ -151,19 +220,24 @@ document.addEventListener('DOMContentLoaded', () => {
         text: samples,
         prompt: "Analyze the writing style of the following text samples. Output a concise set of instructions (max 50 words) that describe the tone, sentence structure, and vocabulary, starting with 'You write with...'. Do not include the samples in the output."
       }, (response) => {
-        btn.textContent = "Analyze & Save My Voice";
+        btn.textContent = "Analyze & Train My Voice";
         btn.disabled = false;
 
         if (response && response.success && response.rewrittenText) {
           const style = response.rewrittenText;
 
-          // Save the style
+          // Save the style so if they upgrade to Pro, it's immediately ready!
           chrome.storage.sync.set({ userVoiceStyle: style }, () => {
             showVoiceStyle(style);
-            alert("Voice analyzed and saved!");
+            if (isPremiumUser) {
+              alert("Voice DNA analyzed and activated across Ghost Writer & Rewriter!");
+            } else {
+              // Freemium hook: show them the awesome result, then invite to Pro
+              if (voiceProLockNotice) voiceProLockNotice.classList.remove('hidden');
+            }
           });
         } else {
-          alert("Analysis failed. Please try again.");
+          alert(response?.error || "Analysis failed. Please check your daily quota or try again.");
           console.error(response?.error);
         }
       });
@@ -171,7 +245,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Load saved voice style
-  chrome.storage.sync.get('userVoiceStyle', (data) => {
+  chrome.storage.sync.get(['userVoiceStyle', 'isPremium'], (data) => {
+    isPremiumUser = !!data.isPremium;
     if (data.userVoiceStyle) {
       showVoiceStyle(data.userVoiceStyle);
     }
@@ -254,8 +329,15 @@ document.addEventListener('DOMContentLoaded', () => {
         statusEl.style.color = "#dc3545"; // Error red
       } else {
         console.log("Options: Settings saved successfully.");
-        statusEl.textContent = "Settings saved!";
-        statusEl.style.color = "#28a745"; // Success green
+        statusEl.textContent = "Settings saved & synced to cloud!";
+        statusEl.style.color = "#00ffff";
+
+        // Sync Notion & Persona settings to Noos.AI Cloud Backend for Web Studio parity
+        chrome.runtime.sendMessage({
+          action: "syncCloudSettings",
+          notionApiKey: settingsToSave.notionApiKey,
+          notionPageId: settingsToSave.notionPageId
+        });
 
         // Also broadcast animation setting changes to any open tabs
         chrome.runtime.sendMessage({
@@ -277,7 +359,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Clear the status message after a bit
       setTimeout(() => {
         if (statusEl) statusEl.textContent = "";
-      }, 2500);
+      }, 3000);
     });
   }
 

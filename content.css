@@ -1,6 +1,6 @@
 /* content.css - NoosAI "MacOS 26.2" Glassmorphism Theme */
 
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500;700&display=swap');
 
 #noosai-result-panel {
     position: fixed;
@@ -30,7 +30,7 @@
     border-radius: 30px !important; 
     z-index: 2147483647;
     padding: 0;
-    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+    font-family: 'Google Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif !important;
     color: #ffffff !important;
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4) !important;
     font-weight: 400 !important;
@@ -93,7 +93,7 @@
     font-weight: 450 !important; /* Slightly heavier for better legibility */
     color: #ffffff !important;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
-    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+    font-family: 'Google Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif !important;
     margin-bottom: 12px;
 }
 
@@ -498,8 +498,6 @@
     animation: shake 0.5s;
 }
 
-}
-
 /* --- [NEW] Magic Pointer UI Feedback --- */
 body.noosai-magic-pointer-ready * {
     cursor: crosshair !important;
@@ -550,7 +548,7 @@ body.noosai-magic-pointer-loading::after {
     align-items: center;
     box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 15px rgba(0,255,255,0.2);
     animation: shareMenuPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    font-family: 'Outfit', sans-serif;
+    font-family: 'Google Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 #noosai-magic-input-container input {
@@ -649,6 +647,82 @@ body.noosai-magic-pointer-loading::after {
     100% { top: 100%; opacity: 0; }
 }
 
-
-
 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+/* --- [NEW] Inline Ghost Input Floating Assistant --- */
+#noosai-ghost-pill {
+    position: fixed;
+    z-index: 2147483646;
+    display: none;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px !important;
+    border-radius: 999px !important;
+    background: rgba(10, 15, 30, 0.85) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(0, 255, 255, 0.45) !important;
+    color: #00ffff !important;
+    font-family: 'Google Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45), 0 0 10px rgba(0, 255, 255, 0.2) !important;
+    transition: all 0.2s ease !important;
+}
+
+#noosai-ghost-pill:hover {
+    background: rgba(0, 255, 255, 0.18) !important;
+    color: #ffffff !important;
+    transform: translateY(-1px) scale(1.03) !important;
+    box-shadow: 0 6px 18px rgba(0, 255, 255, 0.35) !important;
+}
+
+#noosai-ghost-menu {
+    position: fixed;
+    z-index: 2147483647;
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    width: 210px !important;
+    padding: 8px !important;
+    border-radius: 14px !important;
+    background: rgba(10, 15, 30, 0.94) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+    border: 1px solid rgba(0, 255, 255, 0.4) !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65), 0 0 20px rgba(0, 255, 255, 0.2) !important;
+    font-family: 'Google Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif !important;
+}
+
+.noosai-ghost-menu-header {
+    font-size: 10.5px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.8px !important;
+    color: #00ffff !important;
+    padding: 4px 8px 6px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    margin-bottom: 2px !important;
+}
+
+#noosai-ghost-menu button {
+    background: transparent !important;
+    border: none !important;
+    color: #e2e8f0 !important;
+    text-align: left !important;
+    padding: 7px 10px !important;
+    border-radius: 8px !important;
+    font-size: 12.5px !important;
+    font-weight: 500 !important;
+    font-family: inherit !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+}
+
+#noosai-ghost-menu button:hover {
+    background: rgba(0, 255, 255, 0.15) !important;
+    color: #00ffff !important;
+    transform: translateX(2px) !important;
+}
+

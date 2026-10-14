@@ -8,7 +8,7 @@
     --glass-border: rgba(255, 255, 255, 0.12);
     --text-white: #ffffff;
     --text-dim: #94a3b8;
-    --font-main: 'Outfit', sans-serif;
+    --font-main: 'Google Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 *, *::before, *::after {
@@ -317,12 +317,69 @@ textarea:focus, select:focus, input:focus {
 .revenue-section {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    margin-bottom: 12px;
+    gap: 10px;
+    margin-bottom: 8px;
     padding: 12px;
     background: rgba(255, 255, 255, 0.03);
-    border-radius: 18px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    border: 1px solid rgba(0, 255, 255, 0.14);
+}
+
+.quota-meter-box {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 8px 10px;
+}
+
+.quota-meter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+}
+
+.quota-meter-label {
+    color: var(--text-dim);
+    font-weight: 500;
+}
+
+.quota-meter-count {
+    color: var(--primary-cyan);
+    font-weight: 700;
+}
+
+.quota-progress-track {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 99px;
+    overflow: hidden;
+}
+
+.quota-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #00ffff, #a855f7);
+    border-radius: 99px;
+    transition: width 0.4s ease, background 0.3s ease;
+}
+
+.quota-progress-fill.warning {
+    background: linear-gradient(90deg, #f59e0b, #ef4444);
+}
+
+.pro-value-teaser {
+    font-size: 10.5px;
+    color: #cbd5e1;
+    line-height: 1.35;
+    margin-top: 2px;
+}
+
+.pro-value-teaser strong {
+    color: var(--primary-cyan);
 }
 
 .license-area-pro {

@@ -178,6 +178,8 @@ function createResultPanel() {
         const clockIconSpan = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#778899" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 8px; vertical-align: middle; opacity: 0.8;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`;
 
         shareDropdown.innerHTML = `
+            <a id="noosai-share-link" style="display: block; padding: 10px 15px; color: #00ffff; font-weight: 600; text-decoration: none; font-size: 13px; cursor: pointer;">Copy Shareable Link</a>
+            <a id="noosai-share-txt" style="display: block; padding: 10px 15px; color: #e7f1fd; text-decoration: none; font-size: 13px; cursor: pointer;">Download .txt</a>
             <a id="noosai-share-email" style="display: block; padding: 10px 15px; color: #e7f1fd; text-decoration: none; font-size: 13px; cursor: pointer;">Draft in Email</a>
             <a id="noosai-share-docs" style="display: block; padding: 10px 15px; color: #e7f1fd; text-decoration: none; font-size: 13px; cursor: pointer;">Draft in Docs ${clockIconSpan}</a>
             <a id="noosai-share-notion" style="display: block; padding: 10px 15px; color: #e7f1fd; text-decoration: none; font-size: 13px; cursor: pointer;">Send to Notion</a>
@@ -278,7 +280,7 @@ function createResultPanel() {
         // Event Listeners
         document.getElementById('noosai-panel-close-button')?.addEventListener('click', hideResultPanel);
         document.getElementById('noosai-panel-copy-button')?.addEventListener('click', copyPanelContent);
-        document.getElementById('noosai-panel-export-button')?.addEventListener('click', () => { exportResultText('txt'); });
+        document.getElementById('noosai-panel-export-button')?.addEventListener('click', () => { handleShareOptionClick('notion-button'); });
 
         document.getElementById('noosai-translate-summary-button')?.addEventListener('click', handleTranslateSummaryClick);
         document.getElementById('noosai-summarize-result-button')?.addEventListener('click', handleSummarizeResultClick);
@@ -286,6 +288,8 @@ function createResultPanel() {
         document.getElementById('noosai-panel-share-button')?.addEventListener('click', handleShareButtonClick);
 
         // Share options listeners
+        document.getElementById('noosai-share-link')?.addEventListener('click', () => handleShareOptionClick('link'));
+        document.getElementById('noosai-share-txt')?.addEventListener('click', () => exportResultText('txt'));
         document.getElementById('noosai-share-email')?.addEventListener('click', () => handleShareOptionClick('email'));
         document.getElementById('noosai-share-docs')?.addEventListener('click', () => handleShareOptionClick('docs'));
         document.getElementById('noosai-share-notion')?.addEventListener('click', () => handleShareOptionClick('notion'));
@@ -417,18 +421,20 @@ function showResultPanel(titleText, resultData, resultType = 'info', isError = f
             formattedContent = `
                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; text-align: center;">
                     <div class="noosai-loading-spinner" style="width: 40px; height: 40px; border: 3px solid rgba(0, 255, 255, 0.1); border-top: 3px solid #00ffff; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;"></div>
-                    <p style="color: #00ffff; font-size: 13px; letter-spacing: 1.5px; font-weight: 600; text-transform: uppercase; margin: 0 0 10px 0; font-family: 'Outfit', sans-serif;">AI is Thinking</p>
-                    <p style="color: #b5c8e4; font-size: 14px; line-height: 1.4; margin: 0; font-family: 'Outfit', sans-serif; opacity: 0.8;">${escapeHTML(resultData?.message || 'Analyzing pixels and context...')}</p>
+                    <p style="color: #00ffff; font-size: 13px; letter-spacing: 1.5px; font-weight: 600; text-transform: uppercase; margin: 0 0 10px 0; font-family: 'Google Sans', 'Roboto', sans-serif;">AI is Thinking</p>
+                    <p style="color: #b5c8e4; font-size: 14px; line-height: 1.4; margin: 0; font-family: 'Google Sans', 'Roboto', sans-serif; opacity: 0.8;">${escapeHTML(resultData?.message || 'Analyzing pixels and context...')}</p>
                 </div>`;
             plainTextForCopy = resultData?.message || 'Working...';
         } else if (resultType === 'error') {
             const errorMsg = resultData?.details || resultData?.error || 'An error occurred.';
-            const isLimitError = errorMsg.includes('limit reached') || errorMsg.includes('Payment Required');
+            const isLimitError = errorMsg.includes('limit reached') || errorMsg.includes('Payment Required') || errorMsg.includes('Free tier');
             if (isLimitError) {
                 formattedContent = `
-                    <div style="text-align: center; padding: 20px 10px;">
-                        <p style="color: #ff7b72; font-size: 14px; font-weight: 500; margin-bottom: 16px;">${escapeHTML(errorMsg)}</p>
-                        <a href="https://noosai.co.uk" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #00ffff, #ff00ff); color: #000; font-weight: 700; text-decoration: none; padding: 10px 22px; border-radius: 999px; font-size: 13px; box-shadow: 0 0 15px rgba(0, 255, 255, 0.4); transition: transform 0.2s;">Upgrade to Premium</a>
+                    <div style="text-align: center; padding: 18px 12px;">
+                        <div style="display: inline-block; padding: 4px 10px; border-radius: 999px; background: rgba(0, 255, 255, 0.12); border: 1px solid rgba(0, 255, 255, 0.4); color: #00ffff; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px;">Daily Limit Reached</div>
+                        <p style="color: #ffffff; font-size: 15px; font-weight: 700; margin-bottom: 6px;">You've Hit Your 10 Free Daily Actions!</p>
+                        <p style="color: #b5c8e4; font-size: 12.5px; line-height: 1.5; margin-bottom: 14px;">Upgrade to <strong>Noos.AI Pro ($5/mo)</strong> to unlock Unlimited AI Analysis, Inline Ghost Writer, AI Voice Cloning, and Cloud Persona Sync.</p>
+                        <a href="https://noosai.co.uk/#pricing" target="_blank" style="display: inline-block; background: linear-gradient(135deg, #00ffff, #a855f7); color: #050508; font-weight: 700; text-decoration: none; padding: 10px 24px; border-radius: 999px; font-size: 13px; box-shadow: 0 0 20px rgba(0, 255, 255, 0.45); transition: transform 0.2s;">Unlock Unlimited Pro — $5/mo</a>
                     </div>
                 `;
             } else {
@@ -867,6 +873,32 @@ function showTemporaryLinkState(linkId, tempText = 'Copied!', duration = 1500) {
 }
 
 
+function exportResultText(format = 'txt') {
+    const contentArea = document.getElementById('noosai-panel-content');
+    const panelTitle = document.getElementById('noosai-panel-title');
+    const textToExport = contentArea ? contentArea.getAttribute('data-copy-text') : '';
+    const title = panelTitle ? panelTitle.textContent.trim() : 'NoosAI-Report';
+    if (!textToExport) {
+        hideShareDropdown();
+        return;
+    }
+
+    const footerBranding = `\n\n---\nAnalyzed with Noos.AI (https://noosai.co.uk)\n`;
+    const blob = new Blob([`${title}\n${'='.repeat(title.length)}\n\n${textToExport}${footerBranding}`], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }, 150);
+    showTemporaryLinkState('noosai-share-txt', 'Downloaded!', 2000);
+    hideShareDropdown();
+}
+
 async function handleShareOptionClick(option) { // [MODIFIED] Convert to async function
     const contentArea = document.getElementById('noosai-panel-content');
     const panelTitle = document.getElementById('noosai-panel-title');
@@ -883,11 +915,38 @@ async function handleShareOptionClick(option) { // [MODIFIED] Convert to async f
     if (!textToShare) { console.warn("CS: No text to share."); hideShareDropdown(); return; }
 
     switch (option) {
+        case 'link': {
+            showTemporaryLinkState('noosai-share-link', 'Creating link...', 10000);
+            const reportData = {
+                title: subject || 'Noos.AI Analysis',
+                summary: textToShare,
+                sourceUrl: window.location.href,
+                sourceTitle: document.title || window.location.hostname,
+                createdAt: new Date().toISOString()
+            };
+            chrome.runtime.sendMessage({ action: "createShareReport", reportData }, async (res) => {
+                if (res && res.success && res.publicUrl) {
+                    try {
+                        await navigator.clipboard.writeText(res.publicUrl);
+                        showTemporaryLinkState('noosai-share-link', 'Link Copied!', 3000);
+                    } catch (e) {
+                        window.open(res.publicUrl, '_blank');
+                    }
+                } else {
+                    // Fallback: copy formatted summary + viral link
+                    const viralCopy = `${subject}\n\n${textToShare}\n\n— Analyzed via Noos.AI (https://noosai.co.uk)`;
+                    await navigator.clipboard.writeText(viralCopy).catch(() => {});
+                    showTemporaryLinkState('noosai-share-link', 'Copied with Noos.AI link!', 2500);
+                }
+            });
+            return; // Keep dropdown visible briefly so user sees confirmation
+        }
+
         case 'email':
             // [MODIFIED] Robust Email Handling: Copy body to clipboard, open mailto with SUBJECT ONLY.
             // This avoids URL length limits that break mailto links with long bodies.
             try {
-                await navigator.clipboard.writeText(textToShare);
+                await navigator.clipboard.writeText(`${textToShare}\n\n— Analyzed with Noos.AI (https://noosai.co.uk)`);
                 console.log(`CS: Email body copied to clipboard.`);
                 showTemporaryLinkState('noosai-share-email', 'Copied! Paste in email.', 2500);
 
@@ -901,19 +960,22 @@ async function handleShareOptionClick(option) { // [MODIFIED] Convert to async f
             break;
 
         case 'notion':
-            // [NEW] Handle sending content to Notion
-            showTemporaryLinkState('noosai-share-notion', 'Sending...', 99999); // Show indefinite sending message
+        case 'notion-button': {
+            const exportBtn = document.getElementById('noosai-panel-export-button');
+            if (option === 'notion-button' && exportBtn) {
+                exportBtn.textContent = 'Saving...';
+                exportBtn.disabled = true;
+            } else {
+                showTemporaryLinkState('noosai-share-notion', 'Sending...', 99999);
+            }
 
             // Notion's API has a 2000-character limit per rich_text item.
-            // We'll split the text into multiple paragraph blocks if it's too long.
             const notionBlocks = [];
-            // 1. Add the title as a heading
             notionBlocks.push({
                 "object": "block", "type": "heading_2",
-                "heading_2": { "rich_text": [{ "type": "text", "text": { "content": subject } }] }
+                "heading_2": { "rich_text": [{ "type": "text", "text": { "content": `${subject} — (${document.title || window.location.hostname})`.substring(0, 200) } }] }
             });
 
-            // 2. Split content into chunks of 2000 chars and add as paragraphs
             for (let i = 0; i < textToShare.length; i += 2000) {
                 const chunk = textToShare.substring(i, i + 2000);
                 notionBlocks.push({
@@ -923,9 +985,13 @@ async function handleShareOptionClick(option) { // [MODIFIED] Convert to async f
             }
 
             chrome.runtime.sendMessage({ action: "sendToNotion", blocks: notionBlocks }, (response) => {
+                if (exportBtn) exportBtn.disabled = false;
                 if (response?.success) {
                     console.log("CS: Successfully sent to Notion. URL:", response.url);
-                    // [MODIFIED] Make the success message a clickable link
+                    if (option === 'notion-button' && exportBtn) {
+                        exportBtn.textContent = 'Saved to Notion!';
+                        setTimeout(() => { if (exportBtn) exportBtn.textContent = 'Save to Notion'; }, 3000);
+                    }
                     const notionLink = document.getElementById('noosai-share-notion');
                     if (notionLink && response.url) {
                         const originalHTML = notionLink.innerHTML;
@@ -939,7 +1005,6 @@ async function handleShareOptionClick(option) { // [MODIFIED] Convert to async f
                             window.open(response.url, '_blank');
                         };
 
-                        // Revert back after a few seconds
                         setTimeout(() => {
                             if (notionLink) {
                                 notionLink.innerHTML = originalHTML;
@@ -951,12 +1016,22 @@ async function handleShareOptionClick(option) { // [MODIFIED] Convert to async f
                     }
                 } else {
                     console.error("CS: Failed to send to Notion:", response?.error);
-                    // Display the specific error message from the background script
                     const errorMessage = response?.error || 'Failed!';
+                    if (errorMessage.includes('Missing Notion')) {
+                        if (exportBtn) {
+                            exportBtn.textContent = 'Setup Notion';
+                            setTimeout(() => { if (exportBtn) exportBtn.textContent = 'Save to Notion'; }, 3500);
+                        }
+                        chrome.runtime.sendMessage({ action: "openOptionsPage" });
+                    } else if (option === 'notion-button' && exportBtn) {
+                        exportBtn.textContent = 'Notion Error';
+                        setTimeout(() => { if (exportBtn) exportBtn.textContent = 'Save to Notion'; }, 3000);
+                    }
                     showTemporaryLinkState('noosai-share-notion', errorMessage, 4000);
                 }
             });
             break;
+        }
         case 'docs':
         case 'chatgpt':
         case 'claude':
@@ -1002,18 +1077,13 @@ try {
 
             activeElement.dispatchEvent(new Event('input', { bubbles: true }));
         } else if (activeElement && activeElement.isContentEditable) {
-            // For contenteditable (Gmail, etc.)
-            // If specific element passed, ensure it has focus
             if (targetElement) {
                 targetElement.focus();
             }
-
-            // If no selection range, we might need to select all content first to replace it
-            // But execCommand 'insertText' usually inserts at cursor.
-            // For Ghost Input "Rewrite", we usually want to replace the current block or all text.
-            // For now, let's assume 'insertText' replaces selection or inserts at cursor.
-            // To replace ALL, we'd need to select all first.
-
+            const sel = window.getSelection();
+            if (!sel || sel.isCollapsed) {
+                document.execCommand('selectAll', false, null);
+            }
             document.execCommand('insertText', false, text);
         } else {
             console.warn("CS: No suitable active element found to replace text. Trying fallback.");
@@ -1025,7 +1095,178 @@ try {
         }
     }
 
-    // --- Ghost Input Feature Removed ---
+    // --- [NEW] Inline Ghost Input AI Writing Assistant ---
+    let ghostPill = null;
+    let ghostMenu = null;
+    let activeEditableEl = null;
+
+    function isEditableField(el) {
+        if (!el || el.id?.startsWith('noosai-')) return false;
+        if (el.tagName === 'TEXTAREA' && !el.readOnly && !el.disabled) return true;
+        if (el.tagName === 'INPUT' && ['text', 'search', 'email'].includes((el.type || 'text').toLowerCase()) && !el.readOnly && !el.disabled) {
+            return el.getBoundingClientRect().width >= 180;
+        }
+        if (el.isContentEditable) return true;
+        return false;
+    }
+
+    function getEditableText(el) {
+        if (!el) return '';
+        if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') {
+            const start = el.selectionStart;
+            const end = el.selectionEnd;
+            if (start !== end) return el.value.substring(start, end);
+            return el.value || '';
+        }
+        if (el.isContentEditable) {
+            const sel = window.getSelection()?.toString()?.trim();
+            if (sel) return sel;
+            return el.innerText || el.textContent || '';
+        }
+        return '';
+    }
+
+    function ensureGhostUI() {
+        if (ghostPill) return;
+        injectStyles();
+
+        ghostPill = document.createElement('button');
+        ghostPill.id = 'noosai-ghost-pill';
+        ghostPill.type = 'button';
+        ghostPill.title = 'Noos.AI Ghost Writer (Polish, Reply, Concise)';
+        ghostPill.innerHTML = `<span class="noosai-ghost-label">Noos Write</span>`;
+        ghostPill.style.display = 'none';
+
+        ghostMenu = document.createElement('div');
+        ghostMenu.id = 'noosai-ghost-menu';
+        ghostMenu.style.display = 'none';
+        ghostMenu.innerHTML = `
+            <div class="noosai-ghost-menu-header">Noos.AI Ghost Writer</div>
+            <button type="button" data-ghost-prompt="Rewrite and polish this text in my authentic voice so it sounds clear, confident, and natural.">Polish in My Voice</button>
+            <button type="button" data-ghost-prompt="Fix all grammar, spelling, and punctuation while keeping the exact meaning and tone.">Fix Grammar &amp; Tone</button>
+            <button type="button" data-ghost-prompt="Make this text much more concise, punchy, and direct without losing key points.">Make Concise</button>
+            <button type="button" data-ghost-prompt="Expand this draft into a complete, persuasive, and well-structured message or reply.">Expand / Draft Reply</button>
+            <button type="button" data-ghost-prompt="Translate this text into fluent, natural English (or if already English, make it executive-grade).">Translate / Executive</button>
+        `;
+
+        ghostPill.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!activeEditableEl) return;
+            const isMenuOpen = ghostMenu.style.display === 'flex';
+            if (isMenuOpen) {
+                ghostMenu.style.display = 'none';
+            } else {
+                positionGhostMenu();
+                ghostMenu.style.display = 'flex';
+            }
+        });
+
+        ghostMenu.querySelectorAll('button[data-ghost-prompt]').forEach(btn => {
+            btn.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const prompt = btn.getAttribute('data-ghost-prompt');
+                runGhostAction(prompt);
+            });
+        });
+
+        document.body.appendChild(ghostPill);
+        document.body.appendChild(ghostMenu);
+    }
+
+    function positionGhostPill(el) {
+        if (!ghostPill || !el) return;
+        const rect = el.getBoundingClientRect();
+        if (rect.width < 120 || rect.height < 28) {
+            ghostPill.style.display = 'none';
+            if (ghostMenu) ghostMenu.style.display = 'none';
+            return;
+        }
+        const top = Math.max(8, Math.min(window.innerHeight - 36, rect.bottom - 32));
+        const left = Math.max(8, Math.min(window.innerWidth - 110, rect.right - 102));
+        ghostPill.style.top = `${top}px`;
+        ghostPill.style.left = `${left}px`;
+        ghostPill.style.display = 'inline-flex';
+    }
+
+    function positionGhostMenu() {
+        if (!ghostPill || !ghostMenu) return;
+        const pillRect = ghostPill.getBoundingClientRect();
+        let top = pillRect.top - 215;
+        if (top < 10) top = pillRect.bottom + 6;
+        let left = pillRect.right - 210;
+        if (left < 10) left = 10;
+        ghostMenu.style.top = `${top}px`;
+        ghostMenu.style.left = `${left}px`;
+    }
+
+    function runGhostAction(promptInstruction) {
+        if (!activeEditableEl) return;
+        const text = getEditableText(activeEditableEl).trim();
+        if (!text) {
+            if (ghostMenu) ghostMenu.style.display = 'none';
+            showResultPanel("Ghost Writer", { message: "Type a few words or a rough draft inside the text box first, then click Noos Write!" }, 'info', false);
+            return;
+        }
+
+        if (ghostMenu) ghostMenu.style.display = 'none';
+        const originalHTML = ghostPill.innerHTML;
+        ghostPill.innerHTML = `<span class="noosai-ghost-label">Writing...</span>`;
+        ghostPill.disabled = true;
+
+        const targetEl = activeEditableEl;
+        chrome.runtime.sendMessage({
+            action: "performGhostAction",
+            text: text,
+            prompt: promptInstruction
+        }, (res) => {
+            ghostPill.innerHTML = originalHTML;
+            ghostPill.disabled = false;
+            if (res && res.success && res.rewrittenText) {
+                replaceSelectedText(res.rewrittenText, targetEl);
+            } else {
+                const err = res?.error || "Could not rewrite text.";
+                showResultPanel("Ghost Writer Error", { error: err }, 'error', true);
+            }
+        });
+    }
+
+    document.addEventListener('focusin', (e) => {
+        if (!window.extensionEnabled || DISABLED_DOMAINS.includes(window.location.hostname)) return;
+        const el = e.target;
+        if (isEditableField(el)) {
+            activeEditableEl = el;
+            ensureGhostUI();
+            positionGhostPill(el);
+        }
+    }, true);
+
+    document.addEventListener('input', (e) => {
+        if (!window.extensionEnabled) return;
+        if (e.target === activeEditableEl && ghostPill) {
+            positionGhostPill(activeEditableEl);
+        }
+    }, true);
+
+    document.addEventListener('mousedown', (e) => {
+        if (ghostMenu && ghostMenu.style.display === 'flex') {
+            if (!ghostMenu.contains(e.target) && e.target !== ghostPill && !ghostPill?.contains(e.target)) {
+                ghostMenu.style.display = 'none';
+            }
+        }
+        if (ghostPill && ghostPill.style.display !== 'none') {
+            if (e.target !== activeEditableEl && !activeEditableEl?.contains(e.target) && e.target !== ghostPill && !ghostPill.contains(e.target) && !ghostMenu?.contains(e.target)) {
+                setTimeout(() => {
+                    if (!isEditableField(document.activeElement)) {
+                        if (ghostPill) ghostPill.style.display = 'none';
+                        if (ghostMenu) ghostMenu.style.display = 'none';
+                    }
+                }, 150);
+            }
+        }
+    }, true);
+    // --- [END Ghost Input] ---
 
 
     // --- CSS Injection ---
@@ -1797,8 +2038,62 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 // --- [END NEW] ---
 
+// --- [NEW] 1-Click Post-Purchase License Auto-Activation ---
+function checkAndPerformLicenseAutoActivation() {
+    const host = window.location.hostname;
+    const path = window.location.pathname;
+    if (!host.includes('noosai.co.uk') && !host.includes('run.app') && !path.includes('thank-you') && !path.includes('success')) {
+        return;
+    }
+
+    const activateKey = (key) => {
+        if (!key || key.length < 8) return;
+        chrome.runtime.sendMessage({ action: "verifyLicenseKey", licenseKey: key }, (res) => {
+            if (res && res.success && res.isPremium) {
+                chrome.storage.sync.set({ isPremium: true, licenseKey: key, totalFreeTierUsageCount: 0 }, () => {
+                    const statusEl = document.getElementById('noosai-auto-activate-status');
+                    if (statusEl) {
+                        statusEl.textContent = "Noos.AI Pro Activated Automatically in Your Extension!";
+                        statusEl.style.color = "#4ade80";
+                    }
+                    showResultPanel("Noos.AI Pro Activated!", {
+                        message: "Your license key has been automatically verified and activated! You now have Unlimited AI Actions, AI Voice Cloning, Ghost Writer & Cloud Sync."
+                    }, 'success', false);
+                });
+            } else {
+                const statusEl = document.getElementById('noosai-auto-activate-status');
+                if (statusEl) {
+                    statusEl.textContent = res?.message || "Invalid or inactive license key.";
+                    statusEl.style.color = "#f87171";
+                }
+            }
+        });
+    };
+
+    // 1. Check URL query parameter (?license_key=...)
+    const params = new URLSearchParams(window.location.search);
+    const urlKey = params.get('license_key') || params.get('key');
+    if (urlKey) {
+        activateKey(urlKey.trim());
+    }
+
+    // 2. Check DOM attribute [data-noosai-license]
+    const licenseNode = document.querySelector('[data-noosai-license]');
+    if (licenseNode) {
+        const attrKey = licenseNode.getAttribute('data-noosai-license');
+        if (attrKey) activateKey(attrKey.trim());
+    }
+
+    // 3. Listen for custom event from thank-you.html 1-click activator
+    window.addEventListener('noosai-activate-license', (e) => {
+        const key = e.detail?.licenseKey;
+        if (key) activateKey(key.trim());
+    });
+}
+
 // --- Initialization Call ---
 initializeExtensionState();
 checkAndPerformLLMPaste(); // [NEW] Check for pending paste on load
-console.log("NoosAI Content Script: Initialization finished (v5.0)");
+checkAndPerformLicenseAutoActivation(); // [NEW] Auto-activate Pro after checkout
+console.log("NoosAI Content Script: Initialization finished (v5.1)");
 })();
