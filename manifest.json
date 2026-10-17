@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Noos.AI: Spatial AI Copilot, Ghost Writer & Screen Summary",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "description": "10 FREE daily AI actions! Alt+Click Vision AI, YouTube & Page Summary, Inline Ghost Writer, Voice Cloning & 1-Click Notion Sync.",
   "permissions": [
     "activeTab",

@@ -15,6 +15,8 @@ let historyIndex = -1;   // [NEW] Current position in the history
 let isNavigatingHistory = false; // [NEW] Flag to prevent re-adding history items
 
 window.extensionEnabled = true;
+window.magicPointerEnabled = true;
+window.ghostWriterEnabled = true;
 let allowNegativeAnimation = true;
 let allowPositiveAnimation = true;
 
@@ -23,7 +25,7 @@ const DISABLED_DOMAINS = ["buy.stripe.com"];
 console.log("NoosAI Content Script: Initializing (v5.0)...");
 
 // --- Initialization ---
-function initializeExtensionState() { console.log("CS: Init state..."); chrome.storage.sync.get(['extensionEnabled', 'enableNegativeAnimation', 'enablePositiveAnimation', 'enableMagicPointer'], (data) => { if (chrome.runtime.lastError) { console.error("CS: Error loading state", chrome.runtime.lastError); } else { window.extensionEnabled = data.extensionEnabled !== !1; window.magicPointerEnabled = data.enableMagicPointer !== !1; allowNegativeAnimation = data.enableNegativeAnimation !== !1; allowPositiveAnimation = data.enablePositiveAnimation !== !1; console.log("CS: State loaded."); } }); }
+function initializeExtensionState() { console.log("CS: Init state..."); chrome.storage.sync.get(['extensionEnabled', 'enableNegativeAnimation', 'enablePositiveAnimation', 'enableMagicPointer', 'enableGhostWriter'], (data) => { if (chrome.runtime.lastError) { console.error("CS: Error loading state", chrome.runtime.lastError); } else { window.extensionEnabled = data.extensionEnabled !== !1; window.magicPointerEnabled = data.enableMagicPointer !== !1; window.ghostWriterEnabled = data.enableGhostWriter !== !1; allowNegativeAnimation = data.enableNegativeAnimation !== !1; allowPositiveAnimation = data.enablePositiveAnimation !== !1; console.log("CS: State loaded."); } }); }
 
 function checkExtentionRunAnalysis() { const host = window.location.hostname; if (DISABLED_DOMAINS.includes(host)) return false; return window.extensionEnabled; }
 
@@ -1232,8 +1234,13 @@ try {
         });
     }
 
+    function hideGhostUI() {
+        if (ghostPill) ghostPill.style.display = 'none';
+        if (ghostMenu) ghostMenu.style.display = 'none';
+    }
+
     document.addEventListener('focusin', (e) => {
-        if (!window.extensionEnabled || DISABLED_DOMAINS.includes(window.location.hostname)) return;
+        if (!window.extensionEnabled || window.ghostWriterEnabled === false || DISABLED_DOMAINS.includes(window.location.hostname)) return;
         const el = e.target;
         if (isEditableField(el)) {
             activeEditableEl = el;
@@ -1243,7 +1250,7 @@ try {
     }, true);
 
     document.addEventListener('input', (e) => {
-        if (!window.extensionEnabled) return;
+        if (!window.extensionEnabled || window.ghostWriterEnabled === false) return;
         if (e.target === activeEditableEl && ghostPill) {
             positionGhostPill(activeEditableEl);
         }
@@ -1259,13 +1266,32 @@ try {
             if (e.target !== activeEditableEl && !activeEditableEl?.contains(e.target) && e.target !== ghostPill && !ghostPill.contains(e.target) && !ghostMenu?.contains(e.target)) {
                 setTimeout(() => {
                     if (!isEditableField(document.activeElement)) {
-                        if (ghostPill) ghostPill.style.display = 'none';
-                        if (ghostMenu) ghostMenu.style.display = 'none';
+                        hideGhostUI();
                     }
                 }, 150);
             }
         }
     }, true);
+
+    if (chrome.storage && chrome.storage.onChanged) {
+        chrome.storage.onChanged.addListener((changes, area) => {
+            if (area !== 'sync') return;
+            if (changes.extensionEnabled) {
+                window.extensionEnabled = changes.extensionEnabled.newValue !== false;
+                if (!window.extensionEnabled) {
+                    hideResultPanel();
+                    hideGhostUI();
+                }
+            }
+            if (changes.enableGhostWriter) {
+                window.ghostWriterEnabled = changes.enableGhostWriter.newValue !== false;
+                if (!window.ghostWriterEnabled) hideGhostUI();
+            }
+            if (changes.enableMagicPointer) {
+                window.magicPointerEnabled = changes.enableMagicPointer.newValue !== false;
+            }
+        });
+    }
     // --- [END Ghost Input] ---
 
 
@@ -1279,9 +1305,10 @@ try {
             const currentHostname = window.location.hostname;
             if (DISABLED_DOMAINS.includes(currentHostname)) { return false; }
 
-            if (request.message === "updateState") { window.extensionEnabled = request.enabled; if (!request.enabled) hideResultPanel(); sendResponse({ received: true }); return true; }
+            if (request.message === "updateState") { window.extensionEnabled = request.enabled; if (!request.enabled) { hideResultPanel(); hideGhostUI(); } sendResponse({ received: true }); return true; }
             else if (request.message === "updateAnimationSetting") { if (request.setting === "negative") allowNegativeAnimation = request.enabled; else if (request.setting === "positive") allowPositiveAnimation = request.enabled; sendResponse({ received: true }); return true; }
             else if (request.message === "updateMagicPointerSetting") { window.magicPointerEnabled = request.enabled; sendResponse({ received: true }); return true; }
+            else if (request.message === "updateGhostWriterSetting") { window.ghostWriterEnabled = request.enabled; if (!request.enabled) hideGhostUI(); sendResponse({ received: true }); return true; }
             else if (request.action === "hideTooltip") { hideResultPanel(); }
             else if (request.action === "replaceSelection") { // [NEW] Handle replacement
                 replaceSelectedText(request.text);

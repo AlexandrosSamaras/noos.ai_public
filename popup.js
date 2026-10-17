@@ -132,7 +132,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const versionEl = document.getElementById('extensionVersion');
     if (versionEl) {
-      const ver = chrome.runtime?.getManifest?.()?.version || '3.1.0';
+      const ver = chrome.runtime?.getManifest?.()?.version || '3.1.1';
       versionEl.textContent = `v${ver} ${premiumStatus ? 'Pro' : 'Free'}`;
     }
   }

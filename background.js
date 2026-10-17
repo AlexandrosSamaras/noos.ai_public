@@ -54,7 +54,9 @@ chrome.runtime.onInstalled.addListener((details) => {
         'isPremium',
         'licenseKey',
         'enableNegativeAnimation',
-        'enablePositiveAnimation'
+        'enablePositiveAnimation',
+        'enableMagicPointer',
+        'enableGhostWriter'
     ], (data) => {
         const toSet = {};
         if (!data.userId) {
@@ -80,6 +82,14 @@ chrome.runtime.onInstalled.addListener((details) => {
 
         if (data.enablePositiveAnimation === undefined) {
             toSet.enablePositiveAnimation = true;
+        }
+
+        if (data.enableMagicPointer === undefined) {
+            toSet.enableMagicPointer = true;
+        }
+
+        if (data.enableGhostWriter === undefined) {
+            toSet.enableGhostWriter = true;
         }
 
         // CRITICAL: NEVER overwrite isPremium on update!
@@ -466,21 +476,14 @@ chrome.runtime.onMessage.addListener(
         }
         // --- [END NEW] ---
 
-        if (request.message === "updateState" || request.message === "updateAnimationSetting") {
-            // ... (This logic is unchanged) ...
-            if (request.message === "updateState") {
-                chrome.tabs.query({}, (tabs) => {
-                    tabs.forEach(tab => {
-                        if (tab.id) chrome.tabs.sendMessage(tab.id, { message: "updateState", enabled: request.enabled }).catch(e => console.warn(`BG: Could not send updateState to tab ${tab.id}: ${e.message}`));
-                    });
+        if (request.message === "updateState" || request.message === "updateAnimationSetting" || request.message === "updateMagicPointerSetting" || request.message === "updateGhostWriterSetting") {
+            chrome.tabs.query({}, (tabs) => {
+                tabs.forEach(tab => {
+                    if (tab.id) {
+                        chrome.tabs.sendMessage(tab.id, request).catch(e => console.warn(`BG: Could not send ${request.message} to tab ${tab.id}: ${e.message}`));
+                    }
                 });
-            } else if (request.message === "updateAnimationSetting") {
-                chrome.tabs.query({}, (tabs) => {
-                    tabs.forEach(tab => {
-                        if (tab.id) chrome.tabs.sendMessage(tab.id, { message: "updateAnimationSetting", setting: request.setting, enabled: request.enabled }).catch(e => console.warn(`BG: Could not send updateAnimationSetting to tab ${tab.id}: ${e.message}`));
-                    });
-                });
-            }
+            });
             return false;
         }
         else if (request.action === "verifyLicenseKey") {

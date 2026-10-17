@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const negAnimCheckbox = document.getElementById('enableNegativeAnimationOptions');
   const posAnimCheckbox = document.getElementById('enablePositiveAnimationOptions');
   const magicPointerCheckbox = document.getElementById('enableMagicPointerOptions');
+  const ghostWriterCheckbox = document.getElementById('enableGhostWriterOptions');
   const notionApiKeyInput = document.getElementById('notionApiKey');
   const notionPageIdInput = document.getElementById('notionPageId');
   const saveButton = document.getElementById('saveOptionsButton');
@@ -65,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function loadSettings() {
     // Load all settings from storage
     chrome.storage.sync.get(
-      ['enableNegativeAnimation', 'enablePositiveAnimation', 'enableMagicPointer', 'notionApiKey', 'notionPageId', 'customPersonas', 'isPremium', 'licenseKey'],
+      ['enableNegativeAnimation', 'enablePositiveAnimation', 'enableMagicPointer', 'enableGhostWriter', 'notionApiKey', 'notionPageId', 'customPersonas', 'isPremium', 'licenseKey'],
       (data) => {
         if (chrome.runtime.lastError) {
           console.error("Options: Error loading settings:", chrome.runtime.lastError);
@@ -82,6 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (negAnimCheckbox) negAnimCheckbox.checked = data.enableNegativeAnimation !== false;
         if (posAnimCheckbox) posAnimCheckbox.checked = data.enablePositiveAnimation !== false;
         if (magicPointerCheckbox) magicPointerCheckbox.checked = data.enableMagicPointer !== false;
+        if (ghostWriterCheckbox) ghostWriterCheckbox.checked = data.enableGhostWriter !== false;
 
         // Set Notion fields (default to empty string)
         if (notionApiKeyInput) notionApiKeyInput.value = data.notionApiKey || '';
@@ -313,6 +315,7 @@ document.addEventListener('DOMContentLoaded', () => {
       enableNegativeAnimation: negAnimCheckbox ? negAnimCheckbox.checked : true,
       enablePositiveAnimation: posAnimCheckbox ? posAnimCheckbox.checked : true,
       enableMagicPointer: magicPointerCheckbox ? magicPointerCheckbox.checked : true,
+      enableGhostWriter: ghostWriterCheckbox ? ghostWriterCheckbox.checked : true,
       notionApiKey: notionApiKeyInput ? notionApiKeyInput.value.trim() : '',
       notionPageId: notionPageIdInput ? notionPageIdInput.value.trim() : ''
     };
@@ -339,7 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
           notionPageId: settingsToSave.notionPageId
         });
 
-        // Also broadcast animation setting changes to any open tabs
+        // Also broadcast animation & feature setting changes to any open tabs
         chrome.runtime.sendMessage({
           message: "updateAnimationSetting",
           setting: "negative",
@@ -353,6 +356,10 @@ document.addEventListener('DOMContentLoaded', () => {
         chrome.runtime.sendMessage({
           message: "updateMagicPointerSetting",
           enabled: settingsToSave.enableMagicPointer
+        });
+        chrome.runtime.sendMessage({
+          message: "updateGhostWriterSetting",
+          enabled: settingsToSave.enableGhostWriter
         });
       }
 
@@ -388,6 +395,11 @@ document.addEventListener('DOMContentLoaded', () => {
   } else {
     console.error("Options: Save button not found!");
   }
+
+  // Auto-save feature toggles immediately when switched
+  [negAnimCheckbox, posAnimCheckbox, magicPointerCheckbox, ghostWriterCheckbox].forEach(cb => {
+    if (cb) cb.addEventListener('change', saveSettings);
+  });
 
   if (addPersonaButton) {
     addPersonaButton.addEventListener('click', addPersona);
