@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const posAnimCheckbox = document.getElementById('enablePositiveAnimationOptions');
   const magicPointerCheckbox = document.getElementById('enableMagicPointerOptions');
   const ghostWriterCheckbox = document.getElementById('enableGhostWriterOptions');
+  const liveHudCheckbox = document.getElementById('enableLiveHudOptions');
   const notionApiKeyInput = document.getElementById('notionApiKey');
   const notionPageIdInput = document.getElementById('notionPageId');
   const saveButton = document.getElementById('saveOptionsButton');
@@ -66,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function loadSettings() {
     // Load all settings from storage
     chrome.storage.sync.get(
-      ['enableNegativeAnimation', 'enablePositiveAnimation', 'enableMagicPointer', 'enableGhostWriter', 'notionApiKey', 'notionPageId', 'customPersonas', 'isPremium', 'licenseKey'],
+      ['enableNegativeAnimation', 'enablePositiveAnimation', 'enableMagicPointer', 'enableGhostWriter', 'enableLiveHud', 'notionApiKey', 'notionPageId', 'customPersonas', 'isPremium', 'licenseKey'],
       (data) => {
         if (chrome.runtime.lastError) {
           console.error("Options: Error loading settings:", chrome.runtime.lastError);
@@ -84,6 +85,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (posAnimCheckbox) posAnimCheckbox.checked = data.enablePositiveAnimation !== false;
         if (magicPointerCheckbox) magicPointerCheckbox.checked = data.enableMagicPointer !== false;
         if (ghostWriterCheckbox) ghostWriterCheckbox.checked = data.enableGhostWriter !== false;
+        if (liveHudCheckbox) {
+          liveHudCheckbox.checked = data.enableLiveHud !== false;
+          liveHudCheckbox.addEventListener('change', () => {
+            chrome.storage.sync.set({ enableLiveHud: liveHudCheckbox.checked });
+          });
+        }
 
         // Set Notion fields (default to empty string)
         if (notionApiKeyInput) notionApiKeyInput.value = data.notionApiKey || '';
@@ -316,6 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
       enablePositiveAnimation: posAnimCheckbox ? posAnimCheckbox.checked : true,
       enableMagicPointer: magicPointerCheckbox ? magicPointerCheckbox.checked : true,
       enableGhostWriter: ghostWriterCheckbox ? ghostWriterCheckbox.checked : true,
+      enableLiveHud: liveHudCheckbox ? liveHudCheckbox.checked : true,
       notionApiKey: notionApiKeyInput ? notionApiKeyInput.value.trim() : '',
       notionPageId: notionPageIdInput ? notionPageIdInput.value.trim() : ''
     };

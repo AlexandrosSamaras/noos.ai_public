@@ -63,6 +63,49 @@
     let shadow = null;
     let launcherHost = null;
     let launcherDismissed = false;
+    let isExtensionEnabled = true;
+    let isLiveHudAutoEnabled = true;
+
+    function closeLiveHud() {
+        stopLiveHudSession(false);
+        if (hudHost) {
+            hudHost.remove();
+            hudHost = null;
+            shadow = null;
+        }
+    }
+
+    if (chrome?.storage?.sync) {
+        chrome.storage.sync.get(['extensionEnabled', 'enableLiveHud'], (data) => {
+            isExtensionEnabled = data?.extensionEnabled !== false;
+            isLiveHudAutoEnabled = data?.enableLiveHud !== false;
+            if (!isExtensionEnabled || !isLiveHudAutoEnabled) {
+                removeLauncherPill();
+            }
+            if (!isExtensionEnabled) {
+                closeLiveHud();
+            }
+        });
+        chrome.storage.onChanged.addListener((changes, area) => {
+            if (area !== 'sync') return;
+            if (changes.extensionEnabled) {
+                isExtensionEnabled = changes.extensionEnabled.newValue !== false;
+                if (!isExtensionEnabled) {
+                    removeLauncherPill();
+                    closeLiveHud();
+                }
+            }
+            if (changes.enableLiveHud) {
+                isLiveHudAutoEnabled = changes.enableLiveHud.newValue !== false;
+                if (!isLiveHudAutoEnabled) {
+                    removeLauncherPill();
+                } else if (isExtensionEnabled && isActiveMeetingUrl() && !hudHost) {
+                    launcherDismissed = false;
+                    showMeetingLauncherPill();
+                }
+            }
+        });
+    }
 
     // Live session state
     let ws = null;
@@ -110,7 +153,7 @@
 
     // ─── 3. Unobtrusive Meeting Launcher Pill ────────────────────────────────
     function showMeetingLauncherPill() {
-        if (launcherDismissed || launcherHost || hudHost) return;
+        if (!isExtensionEnabled || !isLiveHudAutoEnabled || launcherDismissed || launcherHost || hudHost) return;
 
         launcherHost = document.createElement('div');
         launcherHost.id = 'noosai-meeting-launcher-host';
@@ -475,12 +518,7 @@
             hudBody.style.display = hudBody.style.display === 'none' ? 'block' : 'none';
         });
 
-        shadow.getElementById('hudCloseBtn').addEventListener('click', () => {
-            stopLiveHudSession(false);
-            hudHost.remove();
-            hudHost = null;
-            shadow = null;
-        });
+        shadow.getElementById('hudCloseBtn').addEventListener('click', closeLiveHud);
 
         shadow.getElementById('hudCopyScriptBtn').addEventListener('click', () => {
             const txt = shadow.getElementById('hudSayScript').textContent.replace(/^[“"]+|[”"]+$/g, '');
@@ -769,8 +807,17 @@
     if (chrome?.runtime?.onMessage) {
         chrome.runtime.onMessage.addListener((req, sender, sendResponse) => {
             if (req && req.action === 'toggleLiveCallHud') {
-                openLiveHud();
-                sendResponse({ success: true });
+                if (!isExtensionEnabled) {
+                    sendResponse({ success: false, disabled: true });
+                    return;
+                }
+                if (hudHost) {
+                    closeLiveHud();
+                    sendResponse({ success: true, open: false });
+                } else {
+                    openLiveHud();
+                    sendResponse({ success: true, open: true });
+                }
             }
         });
     }
