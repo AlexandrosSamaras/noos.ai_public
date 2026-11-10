@@ -597,3 +597,16 @@ textarea:focus, select:focus, input:focus {
 }
 
 .hidden { display: none !important; }
+/* In-Call Live HUD Launcher Button */
+.button-live-hud {
+    background: linear-gradient(90deg, rgba(0, 255, 136, 0.12), rgba(0, 229, 255, 0.14));
+    border-color: rgba(0, 255, 136, 0.4);
+    color: #e2fbe8;
+    font-weight: 600;
+}
+.button-live-hud:hover:not(:disabled) {
+    background: linear-gradient(90deg, #00ff88, #00e5ff);
+    color: #050a14;
+    box-shadow: 0 0 16px rgba(0, 255, 136, 0.45);
+    border-color: #ffffff;
+}

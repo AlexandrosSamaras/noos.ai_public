@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const outputLanguageSelect = document.getElementById("outputLanguageSelect");
   const personaSelect = document.getElementById("personaSelect"); // [NEW] Get Persona Dropdown
   const summarizePageButton = document.getElementById("summarizePageButton"); // [NEW] Get Page Summary Button
+  const launchLiveHudButton = document.getElementById("launchLiveHudButton"); // [NEW] In-Call Live HUD Button
   const analyzeSentimentCustom = document.getElementById("analyzeSentimentCustom");
   const analyzeSummaryCustom = document.getElementById("analyzeSummaryCustom");
   const analyzeKeywordsCustom = document.getElementById("analyzeKeywordsCustom");
@@ -132,7 +133,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const versionEl = document.getElementById('extensionVersion');
     if (versionEl) {
-      const ver = chrome.runtime?.getManifest?.()?.version || '3.1.1';
+      const ver = chrome.runtime?.getManifest?.()?.version || '3.2.0';
       versionEl.textContent = `v${ver} ${premiumStatus ? 'Pro' : 'Free'}`;
     }
   }
@@ -146,6 +147,7 @@ document.addEventListener("DOMContentLoaded", () => {
       outputLanguageSelect,
       personaSelect, // [NEW] Add to list
       summarizePageButton, // [NEW] Add to list
+      launchLiveHudButton,
       analyzeSentimentCustom,
       analyzeSummaryCustom,
       analyzeKeywordsCustom,
@@ -425,6 +427,26 @@ document.addEventListener("DOMContentLoaded", () => {
       sendMessageToBackground({ action: "summarizePage" }, (response) => {
         // The background script handles showing the panel, so we just close the popup.
         window.close();
+      });
+    });
+  }
+
+  if (launchLiveHudButton) {
+    launchLiveHudButton.addEventListener("click", () => {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const activeTab = tabs && tabs[0];
+        const url = activeTab?.url || "";
+        if (!activeTab || !activeTab.id || url.startsWith("chrome://") || url.startsWith("edge://") || url.includes("chromewebstore.google.com")) {
+          chrome.tabs.create({ url: "https://noosai.co.uk/app/cockpit.html" });
+          window.close();
+          return;
+        }
+        chrome.tabs.sendMessage(activeTab.id, { action: "toggleLiveCallHud" }, (resp) => {
+          if (chrome.runtime.lastError || !resp?.success) {
+            chrome.tabs.create({ url: "https://noosai.co.uk/app/cockpit.html" });
+          }
+          window.close();
+        });
       });
     });
   }
